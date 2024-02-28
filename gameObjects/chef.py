@@ -7,6 +7,7 @@ from pygame.locals import *
 
 import pygame
 import numpy as np
+from . import Drawable
 
 
 class Chef(Mobile):
@@ -56,35 +57,42 @@ class Chef(Mobile):
       self.position = self.position[0], self.position[1]+40
       self.target_position = None
       self.speed = 5
+      self.holdingItem = False
+      self.itemOffset = vec(0,20)
+      self.item = Drawable()
 
 
    def is_position_valid(self, new_position):
-    # Convert the new position to a Point object
-    point = Point(new_position[0], new_position[1] + 40)
-
-    # Check if the Point is within the allowed polygon
-    if not point.within(self.allowed_polygon):
-        return False
-
-    # Check if the new position + velocity is within the allowed boundaries
-    future_position = Point(point.x + self.velocity[0], point.y + self.velocity[1])
-
-    if not future_position.within(self.allowed_polygon):
-        return False
-
-    return True
+      point = Point(new_position[0], new_position[1] + 40)
+      if not point.within(self.allowed_polygon):
+         return False
+      future_position = Point(point.x + self.velocity[0], point.y + self.velocity[1])
+      if not future_position.within(self.allowed_polygon):
+         return False
+      return True
 
    def handleEvent(self, event):
        return super().handleEvent(event)
 
    def move(self, target_position):
       self.target_position = tuple(target_position)
+
+   def pickUp(self, item):
+      self.item = item
+      self.holdingItem = True
+
+   def dropOff(self):
+      self.holdingItem = False
+      self.item = Drawable()
         
 
    def updateOffset(self, size):
         # Calculate the offset based on the width of the first sprite
         first_sprite_width = self.FSManimated.spriteManager.getSize(self.imageName)[0]
         self.offset = (size.x - first_sprite_width, size.y)
+
+   def isHoldingItem(self):
+      return self.holdingItem
    
    def update(self, seconds): 
       if self.target_position:
@@ -97,6 +105,8 @@ class Chef(Mobile):
          else:
             self.position = np.array(self.target_position, dtype=int)
             self.target_position = None
+      if self.holdingItem:
+         self.item.position = self.itemOffset + self.position
 
       super().update(seconds)
 

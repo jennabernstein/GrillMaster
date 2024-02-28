@@ -62,3 +62,7 @@ class Drawable(object):
     def collide(self,position):
         if self.rect.collidepoint(position):
             return True
+        
+    def scale(self, new_size):
+        scaled_image = pygame.transform.scale(self.image, new_size)
+        self.image = scaled_image

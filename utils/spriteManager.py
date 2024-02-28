@@ -35,7 +35,10 @@ class SpriteManager(object):
       _SPRITE_SIZES = {
          "chef sprite.png" : (18,50),
          "trash cans.png" : (85, 165),
-         "food/patties.png" : (90, 90)
+         "food/patties.png" : (90, 90),
+         "food/lettuce and cheese.png" : (100, 90),
+         "food/onions.png" : (90, 90),
+         "food/tomatos.png" : (107, 90)
       }
       
       
@@ -43,7 +46,8 @@ class SpriteManager(object):
       _DEFAULT_SPRITE = (20, 40)
       
       # A list of images that require to be loaded with transparency
-      _TRANSPARENCY = ["pink counter.png", "pink prep.png", "food/patties.png", "pink long counter.png", "trash cans.png"]
+      _TRANSPARENCY = ["pink counter.png", "pink prep.png", "food/patties.png", "pink long counter.png", "trash cans.png", "tomatos.png", "onions.png",
+                       "lettuce and cheese.png"]
       
       # A list of images that require to be loaded with a color key
       _COLOR_KEY = ["chef sprite.png", "trash.png"]

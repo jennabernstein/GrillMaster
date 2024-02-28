@@ -5,7 +5,7 @@ class Trash(Drawable):
         super().__init__(position, "trash cans.png", offset)
         self.nFrames = 2
         self.opened = False
-        self.chefPos = (300,300)
+        self.chefPos = (-20, 0)
 
     def open_can(self):
         self.opened = True
