@@ -1,5 +1,6 @@
 from . import AbstractGameFSM
 from utils import magnitude, EPSILON, SpriteManager
+from utils import EPSILON
 
 from statemachine import State
 
@@ -16,6 +17,7 @@ class AnimateFSM(AbstractGameFSM):
             self.obj.animationTimer = 0
             self.obj.image = SpriteManager.getInstance().getSprite(self.obj.imageName,
                                                                    (self.obj.frame, self.obj.row))
+         
         
 class WalkingFSM(AnimateFSM):
     """Two-state FSM for walking / stopping in
@@ -23,8 +25,6 @@ class WalkingFSM(AnimateFSM):
        
     standing = State(initial=True)
     moving   = State()
-
-
     
     move = standing.to(moving)
     stop = moving.to(standing)
@@ -35,13 +35,6 @@ class WalkingFSM(AnimateFSM):
             self.move()
         elif not self.hasVelocity() and self != "standing":
             self.stop()
-
-    def get_direction(self):
-        velocity = self.obj.velocity
-        if abs(velocity[0]) > abs(velocity[1]):
-            return "side" if velocity[0] > 0 else "side"
-        else:
-            return "forward" if velocity[1] > 0 else "back"
     
     def hasVelocity(self):
         return magnitude(self.obj.velocity) > EPSILON
@@ -49,4 +42,6 @@ class WalkingFSM(AnimateFSM):
     def noVelocity(self):
         return not self.hasVelocity()
     
-    
+    def updateMovement(self, seconds):
+        if self == "moving":
+            self.obj.position += self.obj.velocity * seconds

@@ -8,6 +8,10 @@ from .tomatoes import Tomatoes
 from .lettucePlate import Lettuces
 from .cheesePlate import Cheeses
 from .onions import Onions
+from .mealPrepStation import MealPrepStation
+from .cookStation import CookStation
+
+from shapely.geometry import Polygon
 
 from utils import vec, RESOLUTION
 
@@ -29,6 +33,11 @@ class GameEngine(object):
         self.onions = Onions((250, 175))
         self.lettuces = Lettuces((290, 150))
         self.cheeses = Cheeses((330, 120))
+        self.orderPrepStation1 = MealPrepStation([(575,235), (640,200), (710,240), (650,280)])
+        self.orderPrepStation2 = MealPrepStation([(575,235), (640,200), (560,150), (500,190)])
+        self.orderPrepStation3 = MealPrepStation([(710,240), (650,280), (740,330), (790,290)])
+        self.mealPrepStations = [self.orderPrepStation1,self.orderPrepStation2,self.orderPrepStation3]
+        self.cookStation = CookStation([(20,470), (90,510), (150,480), (80,430)])
         self.pinkPrep = self.scaleDrawable(self.pinkPrep, (325, 300))
         self.pinkCounter = self.scaleDrawable(self.pinkCounter, (300, 250))
         self.longPinkCounter = self.scaleDrawable(self.longPinkCounter,(640, 375))
@@ -62,7 +71,6 @@ class GameEngine(object):
         self.customerCounter.draw(drawSurface)
         
         
-        
             
     def handleEvent(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -74,8 +82,17 @@ class GameEngine(object):
                         self.trash.open_can()
                         self.chef.dropOff()
                     else:
-                        print(self.chef.item, self.chef.item.position)
                         self.chef.pickUp(i.item)
+            for x in self.mealPrepStations:
+                if x.collide(new_position):
+                    self.chef.move((x.position[0] + x.chefPos[0], x.position[1] + x.chefPos[1]))
+                    if self.chef.isHoldingItem():
+                        #if item is bread, drop off
+                        #if item is cooked patty and there is bread there, drop off
+                        #if item is topping and there is burger there and item is not already there, drop off
+                        self.chef.dropOff()
+        else:
+            self.chef.handleEvent(event)
 
 
         self.trash.close_can()

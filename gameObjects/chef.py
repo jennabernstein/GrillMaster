@@ -15,75 +15,67 @@ class Chef(Mobile):
       super().__init__(position, "chef sprite.png", scale)
       # Animation variables specific to Kirby
       self.framesPerSecond = 12
-      self.nFrames = 8
+      self.nFrames = 1
       
       self.nFramesList = {
          "standing" : 1,
          "moving" : 8,
-         "forward"   : 7,
-         "quarterForward" : 7,
-         "side" : 7,
-         "back" : 7,
-         "quarterBack" : 7
+         #"forward"   : 7,
+         #"quarterForward" : 7,
+         #"side" : 7,
+         #"back" : 7,
+         #"quarterBack" : 7
       }
 
       self.rowList = {
          "standing" : 0,
          "moving" : 0,
-         "forward"   : 0,
-         "quarterForward" : 1,
-         "side" : 2,
-         "back" : 3,
-         "quarterBack" : 4
+         #"forward"   : 0,
+         #"quarterForward" : 1,
+         #"side" : 2,
+         #"back" : 3,
+         #"quarterBack" : 4
       }
       
       self.framesPerSecondList = {
-         "standing" : 2,
+         "standing" : 1,
          "moving" : 8,
-         "forward"   : 8,
-         "quarterForward" : 8,
-         "side" : 2,
-         "back" : 2,
-         "quarterBack" : 2
+         #"forward"   : 8,
+         #"quarterForward" : 8,
+         #"side" : 2,
+         #"back" : 2,
+         #"quarterBack" : 2
       }
             
       self.FSManimated = WalkingFSM(self)
-      self.LR = AccelerationFSM(self, axis=0)
-      self.UD = AccelerationFSM(self, axis=1)
       self.size = self.getSize()
       self.allowed_polygon = Polygon([(10, 350), (10, 250), (450, 40), (450, 90), (950, 300), (950, 700), (600, 700)])
       self.rect = pygame.Rect(self.position[0], self.position[1]+40, self.image.get_width(), self.image.get_height()-60)
       self.position = np.array(position, dtype=int)
       self.position = self.position[0], self.position[1]+40
       self.target_position = None
-      self.speed = 5
+      self.speed = 150
       self.holdingItem = False
-      self.itemOffset = vec(0,20)
+      self.itemOffset = vec(70,150)
       self.item = Drawable()
 
 
-   def is_position_valid(self, new_position):
-      point = Point(new_position[0], new_position[1] + 40)
-      if not point.within(self.allowed_polygon):
-         return False
-      future_position = Point(point.x + self.velocity[0], point.y + self.velocity[1])
-      if not future_position.within(self.allowed_polygon):
-         return False
-      return True
-
    def handleEvent(self, event):
-       return super().handleEvent(event)
+      return super().handleEvent(event)
 
    def move(self, target_position):
       self.target_position = tuple(target_position)
 
    def pickUp(self, item):
-      self.item = item
-      self.holdingItem = True
+      if not self.holdingItem:
+         self.item = item
+         self.holdingItem = True
 
    def dropOff(self):
-      self.holdingItem = False
-      self.item = Drawable()
+        if self.FSManimated.current_state == self.FSManimated.moving:
+            self.FSManimated.stop()
+        self.holdingItem = False
+        self.item = Drawable()
         
 
    def updateOffset(self, size):
@@ -94,21 +86,25 @@ class Chef(Mobile):
    def isHoldingItem(self):
       return self.holdingItem
    
+
    def update(self, seconds): 
+      super().update(seconds)
+
       if self.target_position:
          direction = np.array(self.target_position) - self.position
          distance = np.linalg.norm(direction)
 
-         if distance > self.speed:
+         if distance > 5:
             normalized_direction = direction / distance
-            self.position = tuple(np.array(self.position) + (normalized_direction * self.speed).astype(int))
+            self.velocity = normalized_direction * self.speed
          else:
             self.position = np.array(self.target_position, dtype=int)
             self.target_position = None
+            self.velocity = np.array([0, 0], dtype=int)
+
       if self.holdingItem:
          self.item.position = self.itemOffset + self.position
 
-      super().update(seconds)
+      self.FSManimated.updateState()
+      self.FSManimated.updateMovement(seconds)
 
-   
-  

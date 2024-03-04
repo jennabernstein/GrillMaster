@@ -13,3 +13,4 @@ class Mobile(Animated):
         if magnitude(self.velocity) > self.maxVelocity:
             self.velocity = scale(self.velocity, self.maxVelocity)
         self.position = tuple(np.array(self.position) + (self.velocity * seconds).astype(int))
+
