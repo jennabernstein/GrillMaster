@@ -8,8 +8,10 @@ class Lettuces(Drawable):
         self.chefPos = (20, 0)
         self.item = Drawable(position, "food/lettuce.png")
         self.item.scale((50,50))
+        self.item.stateType = 'lettuce'
     
     def update(self, seconds):
         super().update(seconds)
 
-
+    def getStateType(self):
+        return self.stateType

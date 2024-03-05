@@ -28,6 +28,7 @@ def main():
         pygame.display.flip()
         gameClock = pygame.time.Clock()
         
+        
         # event handling, gets all event from the eventqueue
         for event in pygame.event.get():
             # only do something if the event is of type QUIT

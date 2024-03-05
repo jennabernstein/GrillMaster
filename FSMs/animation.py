@@ -17,7 +17,8 @@ class AnimateFSM(AbstractGameFSM):
             self.obj.animationTimer = 0
             self.obj.image = SpriteManager.getInstance().getSprite(self.obj.imageName,
                                                                    (self.obj.frame, self.obj.row))
-         
+
+
         
 class WalkingFSM(AnimateFSM):
     """Two-state FSM for walking / stopping in
@@ -45,3 +46,5 @@ class WalkingFSM(AnimateFSM):
     def updateMovement(self, seconds):
         if self == "moving":
             self.obj.position += self.obj.velocity * seconds
+
+    

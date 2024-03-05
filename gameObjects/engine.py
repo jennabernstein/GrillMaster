@@ -7,9 +7,9 @@ from .trash import Trash
 from .tomatoes import Tomatoes
 from .lettucePlate import Lettuces
 from .cheesePlate import Cheeses
-from .onions import Onions
 from .mealPrepStation import MealPrepStation
 from .cookStation import CookStation
+from .burgerBunPlate import Buns
 
 from shapely.geometry import Polygon
 
@@ -29,21 +29,30 @@ class GameEngine(object):
         self.trash = Trash((455, 100), (0,0))
         self.patties1 = Patties((100, 260), (0,0))
         self.patties2 = Patties((140, 230), (1, 0))
+        self.buns = Buns((30, 290))
         self.tomatoes = Tomatoes((200, 200))
-        self.onions = Onions((250, 175))
         self.lettuces = Lettuces((290, 150))
         self.cheeses = Cheeses((330, 120))
-        self.orderPrepStation1 = MealPrepStation([(575,235), (640,200), (710,240), (650,280)])
-        self.orderPrepStation2 = MealPrepStation([(575,235), (640,200), (560,150), (500,190)])
+        self.orderPrepStation1 = MealPrepStation([(575,235), (640,200), (560,150), (500,190)])
+        self.plate1 = Drawable((530,160), "food/plate.png", (0,0), 0.4)
+        self.orderPrepStation2 = MealPrepStation([(575,235), (640,200), (710,240), (650,280)])
+        self.plate2 = Drawable((610,210), "food/plate.png", (0,0), 0.4)
         self.orderPrepStation3 = MealPrepStation([(710,240), (650,280), (740,330), (790,290)])
+        self.plate3 = Drawable((690,255), "food/plate.png", (0,0), 0.4)
         self.mealPrepStations = [self.orderPrepStation1,self.orderPrepStation2,self.orderPrepStation3]
         self.cookStation = CookStation([(20,470), (90,510), (150,480), (80,430)])
         self.pinkPrep = self.scaleDrawable(self.pinkPrep, (325, 300))
         self.pinkCounter = self.scaleDrawable(self.pinkCounter, (300, 250))
         self.longPinkCounter = self.scaleDrawable(self.longPinkCounter,(640, 375))
         self.customerCounter = self.scaleDrawable(self.customerCounter, (700, 420))
-        self.foodList = [self.patties1, self.patties2, self.trash, self.tomatoes, self.onions, self.lettuces, self.cheeses]
-        
+        self.foodList = [self.patties1, self.patties2, self.trash, self.tomatoes, self.lettuces, self.cheeses, self.buns]
+        self.cookStations = [self.cookStation]
+        self.burger_images = [None, None, None]
+        self.patty_image = None
+        self.currently_cooking = []
+        self.gameClock = pygame.time.Clock()
+        self.timer = 0
+        self.initialTime = 0
         
 
     def scaleDrawable(self, drawable, new_size):
@@ -58,18 +67,27 @@ class GameEngine(object):
         self.longPinkCounter.draw(drawSurface)
         self.trash.draw(drawSurface)
         self.pinkCounter.draw(drawSurface)
+        self.plate1.draw(drawSurface)
+        self.plate2.draw(drawSurface)
+        self.plate3.draw(drawSurface)
         self.patties1.draw(drawSurface)
         self.patties2.draw(drawSurface)
         self.tomatoes.draw(drawSurface)
         self.cheeses.draw(drawSurface)
-        self.onions.draw(drawSurface)
         self.lettuces.draw(drawSurface)
+        self.buns.draw(drawSurface)
+        for burger_image in self.burger_images:
+            if burger_image is not None:
+                burger_image.draw(drawSurface)
         self.chef.draw(drawSurface)
         if self.chef.isHoldingItem():
             self.chef.item.draw(drawSurface)
         self.pinkPrep.draw(drawSurface)
         self.customerCounter.draw(drawSurface)
+        if self.patty_image:
+            self.patty_image.draw(drawSurface)
         
+
         
             
     def handleEvent(self, event):
@@ -82,21 +100,59 @@ class GameEngine(object):
                         self.trash.open_can()
                         self.chef.dropOff()
                     else:
+                        if self.trash.opened:
+                            self.trash.close_can()
                         self.chef.pickUp(i.item)
             for x in self.mealPrepStations:
                 if x.collide(new_position):
-                    self.chef.move((x.position[0] + x.chefPos[0], x.position[1] + x.chefPos[1]))
+                    self.chef.move(x.chefPos)
                     if self.chef.isHoldingItem():
-                        #if item is bread, drop off
-                        #if item is cooked patty and there is bread there, drop off
-                        #if item is topping and there is burger there and item is not already there, drop off
-                        self.chef.dropOff()
-        else:
-            self.chef.handleEvent(event)
-
-
-        self.trash.close_can()
+                        itemType = self.chef.item.getStateType()
+                        if itemType not in x.burgerFSM.meal:
+                            if ('cooked patty' not in x.burgerFSM.meal and not (itemType == 'lettuce' or itemType == 'tomato' or itemType == 'cheese')) or ('cooked patty' in x.burgerFSM.meal and (itemType == 'lettuce' or itemType == 'tomato' or itemType == 'cheese')):
+                                self.chef.dropOff()
+                                x.burgerFSM.updateBurger(itemType)
+                                index = self.mealPrepStations.index(x)
+                                self.burger_images[index] = x.burgerFSM.getStateImage((x.centroid[0]-23, x.centroid[1]-35))
+                            
+                    elif x.burgerFSM.is_burger_ready() and not self.chef.isHoldingItem():
+                        index = self.mealPrepStations.index(x)
+                        self.chef.pickUp(self.burger_images[index])
+                        self.burger_images[index] = None
+                        x.burgerFSM.reset()
+            for y in self.cookStations:
+                if y.collide(new_position):
+                    self.chef.move(y.chefPos)
+                    if self.chef.isHoldingItem():
+                        itemType = self.chef.item.getStateType()
+                        if itemType == 'patty':
+                            self.currently_cooking.append(y)
+                            self.patty_image = y.pattyFSM.getStateImage((y.centroid[0]-20, y.centroid[1]-10), self.chef.item.offset)
+                            self.chef.dropOff()
+                            self.timer = 0
+            if len(self.currently_cooking) >= 1:
+                for j in self.currently_cooking:
+                    if j.collide(new_position):
+                        if j.pattyFSM.is_done_cooking():
+                            self.chef.pickUp(self.patty_image)
+                            j.pattyFSM.reset()
+                            self.patty_image = None
+                            
+        
     
     def update(self, seconds):
         self.chef.update(seconds)
         Drawable.updateOffset(self.chef, self.size)
+        if self.chef.isHoldingItem() and self.chef.item.getStateType() == 'cooked patty':
+            self.patty_image = None
+
+        if len(self.currently_cooking) >= 1:
+            self.timer += seconds
+            for i in self.currently_cooking:
+                if self.patty_image is not None:
+                    i.pattyFSM.update_cooking(self.timer)
+                    self.patty_image = i.pattyFSM.getStateImage((i.centroid[0]-20, i.centroid[1]-10), self.chef.item.offset)
+        for j in self.mealPrepStations:
+            if j.burgerFSM.meal != []:
+                index = self.mealPrepStations.index(j)
+                self.burger_images[index] = j.burgerFSM.getStateImage((j.centroid[0] - 23, j.centroid[1] - 35))

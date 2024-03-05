@@ -1,5 +1,5 @@
 from . import Mobile
-from FSMs import WalkingFSM, AccelerationFSM
+from FSMs import WalkingFSM
 from utils import vec, RESOLUTION
 from shapely.geometry import Polygon, Point
 
@@ -20,43 +20,33 @@ class Chef(Mobile):
       self.nFramesList = {
          "standing" : 1,
          "moving" : 8,
-         #"forward"   : 7,
-         #"quarterForward" : 7,
-         #"side" : 7,
-         #"back" : 7,
-         #"quarterBack" : 7
+         "forward"   : 8,
+         "back" : 8,
       }
 
       self.rowList = {
-         "standing" : 0,
-         "moving" : 0,
-         #"forward"   : 0,
-         #"quarterForward" : 1,
-         #"side" : 2,
-         #"back" : 3,
-         #"quarterBack" : 4
+         "standing" : 1,
+         "moving" : 1,
+         "forward"   : 2,
+         "back" : 3,
       }
       
       self.framesPerSecondList = {
-         "standing" : 1,
+         "standing" : 8,
          "moving" : 8,
-         #"forward"   : 8,
-         #"quarterForward" : 8,
-         #"side" : 2,
-         #"back" : 2,
-         #"quarterBack" : 2
+         "forward"   : 8,
+         "back" : 8,
       }
-            
+
       self.FSManimated = WalkingFSM(self)
       self.size = self.getSize()
-      self.allowed_polygon = Polygon([(10, 350), (10, 250), (450, 40), (450, 90), (950, 300), (950, 700), (600, 700)])
-      self.rect = pygame.Rect(self.position[0], self.position[1]+40, self.image.get_width(), self.image.get_height()-60)
+      self.rect = pygame.Rect(self.position[0], self.position[1], self.image.get_width(), self.image.get_height())
       self.position = np.array(position, dtype=int)
-      self.position = self.position[0], self.position[1]+40
+      self.position = self.position[0], self.position[1]
       self.target_position = None
       self.speed = 150
       self.holdingItem = False
-      self.itemOffset = vec(70,150)
+      self.itemOffset = vec(70,130)
       self.item = Drawable()
 
 
@@ -65,6 +55,7 @@ class Chef(Mobile):
 
    def move(self, target_position):
       self.target_position = tuple(target_position)
+         
 
    def pickUp(self, item):
       if not self.holdingItem:
@@ -79,9 +70,9 @@ class Chef(Mobile):
         
 
    def updateOffset(self, size):
-        # Calculate the offset based on the width of the first sprite
-        first_sprite_width = self.FSManimated.spriteManager.getSize(self.imageName)[0]
-        self.offset = (size.x - first_sprite_width, size.y)
+      first_sprite_width = self.FSManimated.spriteManager.getSize(self.imageName)[0]
+      scaled_size = vec(*self.image.get_size())
+      self.offset = (scaled_size.x - first_sprite_width, scaled_size.y)
 
    def isHoldingItem(self):
       return self.holdingItem
@@ -93,7 +84,6 @@ class Chef(Mobile):
       if self.target_position:
          direction = np.array(self.target_position) - self.position
          distance = np.linalg.norm(direction)
-
          if distance > 5:
             normalized_direction = direction / distance
             self.velocity = normalized_direction * self.speed

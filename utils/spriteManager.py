@@ -33,13 +33,25 @@ class SpriteManager(object):
       
       # Static information about the sprite sizes of particular image sheets.
       _SPRITE_SIZES = {
-         "chef sprite.png" : (18,50),
+         "chef sprite.png" : (20, 40),
          "trash cans.png" : (85, 165),
          "food/patties.png" : (90, 90),
          "food/lettuce and cheese.png" : (100, 90),
          "food/onions.png" : (90, 90),
          "food/tomatos.png" : (107, 90),
-         "food/patty.png" : (90, 70)
+         "food/patty.png" : (90, 70),
+         "food/burger sprites.png" : (90,90),
+         "food/burger bun.png" : (300,250),
+         "food/plate.png" : (300,300),
+         "food/burger/bun.png": (20,20), 
+         "food/burger/cheese and tomato.png": (20,20), 
+         "food/burger/cheese, tomato, lettuce.png": (50,50), 
+         "food/burger/cheese.png": (50,50), 
+         "food/burger/lettuce and cheese.png": (50,50), 
+         "food/burger/lettuce and toamto.png": (50,50), 
+         "food/burger/lettuce.png": (50,50), 
+         "food/burger/patty.png": (20,20), 
+         "food/burger/tomato.png": (50,50)
       }
       
       
@@ -47,11 +59,12 @@ class SpriteManager(object):
       _DEFAULT_SPRITE = (20, 40)
       
       # A list of images that require to be loaded with transparency
-      _TRANSPARENCY = ["pink counter.png", "pink prep.png", "food/patties.png", "pink long counter.png", "trash cans.png", "food/tomatos.png", "food/onions.png",
-                       "food/lettuce and cheese.png", "food/patty.png", "food/tomato.png", "food/lettuce.png", "food/cheese.png"]
+      _TRANSPARENCY = ["pink counter.png", "pink prep.png", "food/patties.png", "pink long counter.png", "trash cans.png", "food/tomatos.png",
+                       "food/lettuce and cheese.png", "food/patty.png", "food/tomato.png", "food/lettuce.png", "food/cheese.png", "food/burger bun.png", "food/plate.png"]
       
       # A list of images that require to be loaded with a color key
-      _COLOR_KEY = ["chef sprite.png", "trash.png", "food/onion.png"]
+      _COLOR_KEY = ["chef sprite.png", "trash.png",  "food/burger sprites.png",
+                    "food/burger/bun.png", "food/burger/cheese and tomato.png", "food/burger/cheese, tomato, lettuce.png", "food/burger/cheese.png", "food/burger/lettuce and cheese.png", "food/burger/lettuce and tomato.png", "food/burger/lettuce.png", "food/burger/patty.png", "food/burger/tomato.png"]
       
       
       def __init__(self):
@@ -74,9 +87,6 @@ class SpriteManager(object):
       def getSprite(self, fileName, offset=None):
          # If this sprite has not already been loaded, load the image from memory
          if fileName not in self._surfaces.keys():
-            if fileName == "chef sprite.png":
-               self._loadImage(fileName, offset != None, border_padding=8, shape_padding=3)
-            else:
                 self._loadImage(fileName, offset != None, 0, 0)
          
          # If this is an image sheet, return the correctly offset sub surface
