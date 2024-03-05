@@ -84,6 +84,7 @@ class Chef(Mobile):
       if self.target_position:
          direction = np.array(self.target_position) - self.position
          distance = np.linalg.norm(direction)
+
          if distance > 5:
             normalized_direction = direction / distance
             self.velocity = normalized_direction * self.speed

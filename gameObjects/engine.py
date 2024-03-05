@@ -53,6 +53,7 @@ class GameEngine(object):
         self.gameClock = pygame.time.Clock()
         self.timer = 0
         self.initialTime = 0
+        self.current_patty_offset = 0
         
 
     def scaleDrawable(self, drawable, new_size):
@@ -114,7 +115,11 @@ class GameEngine(object):
                                 x.burgerFSM.updateBurger(itemType)
                                 index = self.mealPrepStations.index(x)
                                 self.burger_images[index] = x.burgerFSM.getStateImage((x.centroid[0]-23, x.centroid[1]-35))
-                            
+                            elif itemType == 'bun':
+                                self.chef.dropOff()
+                                x.burgerFSM.updateBurger(itemType)
+                                index = self.mealPrepStations.index(x)
+                                self.burger_images[index] = x.burgerFSM.getStateImage((x.centroid[0]-23, x.centroid[1]-35))
                     elif x.burgerFSM.is_burger_ready() and not self.chef.isHoldingItem():
                         index = self.mealPrepStations.index(x)
                         self.chef.pickUp(self.burger_images[index])
@@ -125,16 +130,21 @@ class GameEngine(object):
                     self.chef.move(y.chefPos)
                     if self.chef.isHoldingItem():
                         itemType = self.chef.item.getStateType()
-                        if itemType == 'patty':
-                            self.currently_cooking.append(y)
-                            self.patty_image = y.pattyFSM.getStateImage((y.centroid[0]-20, y.centroid[1]-10), self.chef.item.offset)
+                        if itemType == 'patty' and not y.isPattyOn():
+                            if y not in self.currently_cooking:
+                                self.currently_cooking.append(y)
+                            self.current_patty_offset = self.chef.item.offset
+                            self.patty_image = y.pattyFSM.getStateImage((y.centroid[0]-20, y.centroid[1]-10), self.current_patty_offset)
                             self.chef.dropOff()
+                            y.pattyOn = True
                             self.timer = 0
             if len(self.currently_cooking) >= 1:
                 for j in self.currently_cooking:
                     if j.collide(new_position):
                         if j.pattyFSM.is_done_cooking():
                             self.chef.pickUp(self.patty_image)
+                            j.pattyOn = False
+                            self.currently_cooking.remove(j)
                             j.pattyFSM.reset()
                             self.patty_image = None
                             
@@ -143,15 +153,25 @@ class GameEngine(object):
     def update(self, seconds):
         self.chef.update(seconds)
         Drawable.updateOffset(self.chef, self.size)
+        
         if self.chef.isHoldingItem() and self.chef.item.getStateType() == 'cooked patty':
             self.patty_image = None
 
+        # Update the cooking process
+        self.update_cooking(seconds)
+
+        # Update the meal prep stations
+        self.update_meal_prep_stations()
+
+    def update_cooking(self, seconds):
         if len(self.currently_cooking) >= 1:
             self.timer += seconds
             for i in self.currently_cooking:
                 if self.patty_image is not None:
                     i.pattyFSM.update_cooking(self.timer)
-                    self.patty_image = i.pattyFSM.getStateImage((i.centroid[0]-20, i.centroid[1]-10), self.chef.item.offset)
+                    self.patty_image = i.pattyFSM.getStateImage((i.centroid[0] - 20, i.centroid[1] - 10), self.current_patty_offset)
+
+    def update_meal_prep_stations(self):
         for j in self.mealPrepStations:
             if j.burgerFSM.meal != []:
                 index = self.mealPrepStations.index(j)
