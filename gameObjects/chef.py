@@ -48,7 +48,7 @@ class Chef(Mobile):
       self.holdingItem = False
       self.itemOffset = vec(70,130)
       self.item = Drawable()
-
+      self.reached_target_position = False
 
    def handleEvent(self, event):
       return super().handleEvent(event)
@@ -56,18 +56,18 @@ class Chef(Mobile):
    def move(self, target_position):
       self.target_position = tuple(target_position)
          
-
    def pickUp(self, item):
       if not self.holdingItem:
          self.item = item
-         self.holdingItem = True
+      self.holdingItem = True
+      self.reached_target_position = False
 
    def dropOff(self):
-        if self.FSManimated.current_state == self.FSManimated.moving:
-            self.FSManimated.stop()
-        self.holdingItem = False
-        self.item = Drawable()
-        
+      if self.FSManimated.current_state == self.FSManimated.moving:
+         self.FSManimated.stop()
+      self.holdingItem = False
+      self.item = Drawable()
+      self.reached_target_position = False
 
    def updateOffset(self, size):
       first_sprite_width = self.FSManimated.spriteManager.getSize(self.imageName)[0]
@@ -77,7 +77,6 @@ class Chef(Mobile):
    def isHoldingItem(self):
       return self.holdingItem
    
-
    def update(self, seconds): 
       super().update(seconds)
 
@@ -92,10 +91,11 @@ class Chef(Mobile):
             self.position = np.array(self.target_position, dtype=int)
             self.target_position = None
             self.velocity = np.array([0, 0], dtype=int)
+            self.reached_target_position = True   
 
       if self.holdingItem:
          self.item.position = self.itemOffset + self.position
+      
 
       self.FSManimated.updateState()
       self.FSManimated.updateMovement(seconds)
-

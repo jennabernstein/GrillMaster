@@ -8,9 +8,7 @@ class Patties(Drawable):
         self.chefPos = (20, 0)
 
         itemOffset = (offset[0], 0)
-        print('itemoffset', itemOffset)
         self.item = Drawable(position, "food/burger sprites.png", itemOffset)
-        print('initial offset', offset[0])
         self.item.offset = offset[0]
         self.item.scale((50,50))
         self.row = 0
