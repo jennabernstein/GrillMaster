@@ -11,6 +11,7 @@ class PattyFSM(AbstractGameFSM):
     cook = raw.to(cooking) | cooking.to(cooked) | cooked.to(burnt) | burnt.to(burnt)
 
     def update_cooking(self, seconds):
+        self.seconds = seconds
         if self.current_state == self.burnt:
             self.cook()
         elif seconds >= 15 and self.current_state == self.cooked:
@@ -50,3 +51,6 @@ class PattyFSM(AbstractGameFSM):
             self.patty_image = Drawable(position, "food/burger sprites.png", (offset, 3), 0.5)
             self.patty_image.stateType = 'burnt patty'
         return self.patty_image
+    
+    def get_cooking_percentage(self):
+        return self.seconds/10

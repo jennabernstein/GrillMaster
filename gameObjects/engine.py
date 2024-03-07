@@ -12,6 +12,7 @@ from .cookStation import CookStation
 from .burgerBunPlate import Buns
 
 from shapely.geometry import Polygon
+import math
 
 from utils import vec, RESOLUTION
 import numpy as np
@@ -52,6 +53,7 @@ class GameEngine(object):
         self.patty_image = None
         self.currently_cooking = []
         self.gameClock = pygame.time.Clock()
+        self.gameTime = 0
         self.timer = 0
         self.initialTime = 0
         self.current_patty_offset = 0
@@ -87,6 +89,11 @@ class GameEngine(object):
         self.customerCounter.draw(drawSurface)
         if self.patty_image:
             self.patty_image.draw(drawSurface)
+        for station in self.currently_cooking:
+            percentage = station.pattyFSM.get_cooking_percentage()
+            position = (station.centroid[0] - 20, station.centroid[1] - 30)
+            self.draw_timer(drawSurface, position, 10, percentage)
+
         
 
         
@@ -132,12 +139,8 @@ class GameEngine(object):
                     if self.chef.isHoldingItem():
                         itemType = self.chef.item.getStateType()
                         if itemType not in x.burgerFSM.meal:
-                            if ('cooked patty' not in x.burgerFSM.meal and not (itemType == 'lettuce' or itemType == 'tomato' or itemType == 'cheese')) or ('cooked patty' in x.burgerFSM.meal and (itemType == 'lettuce' or itemType == 'tomato' or itemType == 'cheese')):
-                                self.chef.dropOff()
-                                x.burgerFSM.updateBurger(itemType)
-                                index = self.mealPrepStations.index(x)
-                                self.burger_images[index] = x.burgerFSM.getStateImage((x.centroid[0]-23, x.centroid[1]-35))
-                            elif itemType == 'bun':
+                            #if bun, if patty and bun is there and patty is not there, if topping and patty is there
+                            if (itemType == 'bun') or (itemType == 'cooked patty' and 'bun' in x.burgerFSM.meal and 'cooked patty' not in x.burgerFSM.meal) or ((itemType == 'lettuce' or itemType == 'tomato' or itemType == 'cheese') and 'cooked patty' in x.burgerFSM.meal):
                                 self.chef.dropOff()
                                 x.burgerFSM.updateBurger(itemType)
                                 index = self.mealPrepStations.index(x)
@@ -180,6 +183,7 @@ class GameEngine(object):
 
 
     def update(self, seconds):
+        self.gameTime += seconds
         self.chef.update(seconds)
         Drawable.updateOffset(self.chef, self.size)
         
@@ -206,3 +210,21 @@ class GameEngine(object):
             if j.burgerFSM.meal != []:
                 index = self.mealPrepStations.index(j)
                 self.burger_images[index] = j.burgerFSM.getStateImage((j.centroid[0] - 23, j.centroid[1] - 35))
+    
+    def draw_timer(self, drawSurface, position, radius, percentage):
+        pygame.draw.circle(drawSurface, (0, 0, 0), position, radius)
+
+        if 0 < percentage < 1:
+            self.draw_arc(drawSurface, position, radius, percentage, (0, 200, 100))
+        elif 1 <= percentage <= 1.5:
+            # Clear the screen (draw a black circle)
+            pygame.draw.circle(drawSurface, (0, 0, 0), position, radius)
+            
+            # Draw the second timer (percentage from 1 to 1.5)
+            self.draw_arc(drawSurface, position, radius, max(0, percentage - 1)*2, (0, 200, 0))
+        elif percentage > 1.5:
+            pygame.draw.circle(drawSurface, (255, 0, 0), position, radius)
+
+    def draw_arc(self, drawSurface, position, radius, percentage, color):
+        angle = 360 * percentage
+        pygame.draw.arc(drawSurface, color, (position[0] - radius, position[1] - radius, 2 * radius, 2 * radius), math.radians(-90), math.radians(-90 + angle), width=6)
