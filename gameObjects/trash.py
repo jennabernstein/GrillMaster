@@ -10,21 +10,20 @@ class Trash(Drawable):
 
     def open_can(self):
         self.opened = True
-        self.update_image()
+        self.update_image('open')
 
     def close_can(self):
         self.opened = False
-        self.update_image()
+        self.update_image('close')
 
     def is_open(self):
         return self.opened
     
-    def update_image(self):
-        print(self.offset)
-        if self.offset[0] == 0:
+    def update_image(self, command):
+        if command == 'open':
             self.change_offset((1,0))
             self.offset = (1,0)
-        elif self.offset[0] == 1:
+        elif command == 'close':
             self.change_offset((0,0))
             self.offset = (0,0)
         

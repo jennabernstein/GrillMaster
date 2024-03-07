@@ -14,6 +14,7 @@ from .burgerBunPlate import Buns
 from shapely.geometry import Polygon
 
 from utils import vec, RESOLUTION
+import numpy as np
 
 class GameEngine(object):
     import pygame
@@ -60,7 +61,6 @@ class GameEngine(object):
         scaled_image = pygame.transform.scale(drawable.image, new_size)
         scaled_drawable = Drawable(drawable.position, "")
         scaled_drawable.image = scaled_image
-
         return scaled_drawable
     
     def draw(self, drawSurface):        
@@ -94,19 +94,41 @@ class GameEngine(object):
     def handleEvent(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             new_position = event.pos
-            for i in self.foodList:
-                if i.collide(new_position):
-                    self.chef.move((i.position[0] + i.chefPos[0], i.position[1] + i.chefPos[1]))
+            #handle picking up the food
+            self.handle_foodlist_event(new_position)
+            #handle prepping the food
+            self.handle_mealprepstation_event(new_position)
+            #handle cooking the patty
+            self.handle_cookstation_event(new_position)
+            #handle picking up a cooked patty
+            self.handle_cooking(new_position)
+                            
+        
+
+    def handle_foodlist_event(self, new_position):
+        for i in self.foodList:
+            if i.collide(new_position):
+                self.chef.move((i.position[0] + i.chefPos[0], i.position[1] + i.chefPos[1]))
+                if i != self.trash:
+                    self.trash.close_can()
+                direction = np.array(self.chef.position) - (i.position[0] + i.chefPos[0], i.position[1] + i.chefPos[1])
+                distance = np.linalg.norm(direction)
+                if distance < 5:
                     if i == self.trash:
                         self.trash.open_can()
                         self.chef.dropOff()
                     else:
-                        if self.trash.opened:
-                            self.trash.close_can()
+                        self.trash.close_can()
                         self.chef.pickUp(i.item)
-            for x in self.mealPrepStations:
-                if x.collide(new_position):
-                    self.chef.move(x.chefPos)
+                        print(self.chef.holdingItem)
+
+    def handle_mealprepstation_event(self, new_position):
+        for x in self.mealPrepStations:
+            if x.collide(new_position):
+                self.chef.move(x.chefPos)
+            direction = np.array(self.chef.position) - x.chefPos
+            distance = np.linalg.norm(direction)
+            if distance < 5:
                     if self.chef.isHoldingItem():
                         itemType = self.chef.item.getStateType()
                         if itemType not in x.burgerFSM.meal:
@@ -125,9 +147,14 @@ class GameEngine(object):
                         self.chef.pickUp(self.burger_images[index])
                         self.burger_images[index] = None
                         x.burgerFSM.reset()
-            for y in self.cookStations:
-                if y.collide(new_position):
-                    self.chef.move(y.chefPos)
+
+    def handle_cookstation_event(self, new_position):
+        for y in self.cookStations:
+            if y.collide(new_position):
+                self.chef.move(y.chefPos)
+            direction = np.array(self.chef.position) - y.chefPos
+            distance = np.linalg.norm(direction)
+            if distance < 5:
                     if self.chef.isHoldingItem():
                         itemType = self.chef.item.getStateType()
                         if itemType == 'patty' and not y.isPattyOn():
@@ -138,18 +165,20 @@ class GameEngine(object):
                             self.chef.dropOff()
                             y.pattyOn = True
                             self.timer = 0
-            if len(self.currently_cooking) >= 1:
-                for j in self.currently_cooking:
-                    if j.collide(new_position):
-                        if j.pattyFSM.is_done_cooking():
-                            self.chef.pickUp(self.patty_image)
-                            j.pattyOn = False
-                            self.currently_cooking.remove(j)
-                            j.pattyFSM.reset()
-                            self.patty_image = None
-                            
-        
-    
+
+    def handle_cooking(self, new_position):
+        if len(self.currently_cooking) >= 1:
+            for j in self.currently_cooking:
+                if j.collide(new_position):
+                    if j.pattyFSM.is_done_cooking():
+                        self.chef.pickUp(self.patty_image)
+                        j.pattyOn = False
+                        self.currently_cooking.remove(j)
+                        j.pattyFSM.reset()
+                        self.patty_image = None
+
+
+
     def update(self, seconds):
         self.chef.update(seconds)
         Drawable.updateOffset(self.chef, self.size)
@@ -162,6 +191,7 @@ class GameEngine(object):
 
         # Update the meal prep stations
         self.update_meal_prep_stations()
+
 
     def update_cooking(self, seconds):
         if len(self.currently_cooking) >= 1:

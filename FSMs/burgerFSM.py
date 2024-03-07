@@ -53,7 +53,7 @@ class BurgerFSM(AbstractGameFSM):
 
     def getStateImage(self, position):
         if self.meal == []:
-            return None
+            return Drawable(position, "food/plate.png", None, 0.4)
         elif self.meal == ['bun']:
             return Drawable(position, "food/burger/bun.png", None, 0.25)
         elif 'cooked patty' in self.meal and 'bun' in self.meal and len(self.meal) == 2:
