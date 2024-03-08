@@ -55,20 +55,20 @@ class BurgerFSM(AbstractGameFSM):
         if self.meal == []:
             return Drawable(position, "food/plate.png", None, 0.4)
         elif self.meal == ['bun']:
-            return Drawable(position, "food/burger/bun.png", None, 0.25)
+            return Drawable(position, "food/burger/bun with plate.png", None, 0.3)
         elif 'cooked patty' in self.meal and 'bun' in self.meal and len(self.meal) == 2:
-            return Drawable(position, "food/burger/patty.png", None, 0.25)
+            return Drawable(position, "food/burger/patty with plate.png", None, 0.3)
         elif 'cooked patty' in self.meal and 'bun' in self.meal and 'cheese' in self.meal and len(self.meal) == 3:
-            return Drawable(position, "food/burger/cheese.png", None, 0.25)
+            return Drawable(position, "food/burger/cheese with plate.png", None, 0.3)
         elif 'cooked patty' in self.meal and 'bun' in self.meal and 'tomato' in self.meal and len(self.meal) == 3:
-            return Drawable(position, "food/burger/tomato.png", None, 0.25)
+            return Drawable(position, "food/burger/tomato with plate.png", None, 0.3)
         elif 'cooked patty' in self.meal and 'bun' in self.meal and 'lettuce' in self.meal and len(self.meal) == 3:
-            return Drawable(position, "food/burger/lettuce.png", None, 0.25)
+            return Drawable(position, "food/burger/lettuce with plate.png", None, 0.3)
         elif 'cooked patty' in self.meal and 'bun' in self.meal and 'tomato' in self.meal and 'cheese' in self.meal and len(self.meal) == 4:
-            return Drawable(position, "food/burger/cheese and tomato.png", None, 0.25)
+            return Drawable(position, "food/burger/cheese and tomato with plate.png", None, 0.3)
         elif 'cooked patty' in self.meal and 'bun' in self.meal and 'tomato' in self.meal and 'lettuce' in self.meal and len(self.meal) == 4:
-            return Drawable(position, "food/burger/lettuce and tomato.png", None, 0.25)
+            return Drawable(position, "food/burger/lettuce and tomato with plate.png", None, 0.3)
         elif 'cooked patty' in self.meal and 'bun' in self.meal and 'lettuce' in self.meal and 'cheese' in self.meal and len(self.meal) == 4:
-            return Drawable(position, "food/burger/lettuce and cheese.png", None, 0.25)
+            return Drawable(position, "food/burger/lettuce and cheese with plate.png", None, 0.3)
         elif 'cooked patty' in self.meal and 'bun' in self.meal and 'lettuce' in self.meal and 'cheese' in self.meal and 'tomato' in self.meal and len(self.meal) == 5:
-            return Drawable(position, "food/burger/cheese, tomato, lettuce.png", None, 0.25)
+            return Drawable(position, "food/burger/cheese, tomato, lettuce with plate.png", None, 0.3)

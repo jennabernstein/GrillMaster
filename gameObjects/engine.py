@@ -36,11 +36,11 @@ class GameEngine(object):
         self.lettuces = Lettuces((290, 150))
         self.cheeses = Cheeses((330, 120))
         self.orderPrepStation1 = MealPrepStation([(575,235), (640,200), (560,150), (500,190)])
-        self.plate1 = Drawable((530,160), "food/plate.png", (0,0), 0.4)
+        self.plate1 = Drawable((540,170), "food/plate.png", (0,0), 0.3)
         self.orderPrepStation2 = MealPrepStation([(575,235), (640,200), (710,240), (650,280)])
-        self.plate2 = Drawable((610,210), "food/plate.png", (0,0), 0.4)
+        self.plate2 = Drawable((620,220), "food/plate.png", (0,0), 0.3)
         self.orderPrepStation3 = MealPrepStation([(710,240), (650,280), (740,330), (790,290)])
-        self.plate3 = Drawable((690,255), "food/plate.png", (0,0), 0.4)
+        self.plate3 = Drawable((700,265), "food/plate.png", (0,0), 0.3)
         self.mealPrepStations = [self.orderPrepStation1,self.orderPrepStation2,self.orderPrepStation3]
         self.cookStation = CookStation([(20,470), (90,510), (150,480), (80,430)])
         self.pinkPrep = self.scaleDrawable(self.pinkPrep, (325, 300))
@@ -70,9 +70,12 @@ class GameEngine(object):
         self.longPinkCounter.draw(drawSurface)
         self.trash.draw(drawSurface)
         self.pinkCounter.draw(drawSurface)
-        self.plate1.draw(drawSurface)
-        self.plate2.draw(drawSurface)
-        self.plate3.draw(drawSurface)
+        if len(self.orderPrepStation1.meal) < 1:
+            self.plate1.draw(drawSurface)
+        if len(self.orderPrepStation2.meal) < 1:
+            self.plate2.draw(drawSurface)
+        if len(self.orderPrepStation3.meal) < 1:
+            self.plate3.draw(drawSurface)
         self.patties1.draw(drawSurface)
         self.patties2.draw(drawSurface)
         self.tomatoes.draw(drawSurface)
@@ -151,7 +154,7 @@ class GameEngine(object):
                             self.chef.dropOff()
                             x.burgerFSM.updateBurger(itemType)
                             index = self.mealPrepStations.index(x)
-                            self.burger_images[index] = x.burgerFSM.getStateImage((x.centroid[0]-23, x.centroid[1]-35))
+                            self.burger_images[index] = x.burgerFSM.getStateImage((x.centroid[0]-35, x.centroid[1]-42))
 
     def handle_cookstation_event(self, new_position):
         for y in self.cookStations:
@@ -211,7 +214,7 @@ class GameEngine(object):
         for j in self.mealPrepStations:
             if j.burgerFSM.meal != []:
                 index = self.mealPrepStations.index(j)
-                self.burger_images[index] = j.burgerFSM.getStateImage((j.centroid[0] - 23, j.centroid[1] - 35))
+                self.burger_images[index] = j.burgerFSM.getStateImage((j.centroid[0] - 35, j.centroid[1] - 42))
     
     def draw_timer(self, drawSurface, position, radius, percentage):
         pygame.draw.circle(drawSurface, (0, 0, 0), position, radius)
