@@ -9,6 +9,7 @@ Will load entire sprite sheets if given an offset.
 
 from pygame import image, Surface, Rect, SRCALPHA
 from os.path import join
+import pygame
 
 class SpriteManager(object):
    """A singleton factory class to create and store sprites on demand."""
@@ -84,15 +85,26 @@ class SpriteManager(object):
                                              SpriteManager._SM._DEFAULT_SPRITE)
          return spriteSize
       
-      def getSprite(self, fileName, offset=None):
+      def getSprite(self, fileName, offset=None, scale = 1, flip_x = False):
          # If this sprite has not already been loaded, load the image from memory
          if fileName not in self._surfaces.keys():
-                self._loadImage(fileName, offset != None, 0, 0)
-         
-         # If this is an image sheet, return the correctly offset sub surface
-         if offset != None:
-            return self[fileName][offset[1]][offset[0]]
-         
+            self._loadImage(fileName, offset is not None, 0, 0)
+
+         # If this is an image sheet, return the correctly offset sub-surface
+         if offset is not None:
+            original_surface = self[fileName][offset[1]][offset[0]]
+            scaled_surface = pygame.transform.scale(
+                  original_surface,
+                  (
+                     int(original_surface.get_width() * scale),
+                     int(original_surface.get_height() * scale),
+                  ),
+            )
+            if flip_x:
+               scaled_surface = pygame.transform.flip(scaled_surface, True, False)
+               return scaled_surface
+            return scaled_surface
+
          # Otherwise, return the sheet created
          return self[fileName]
       

@@ -22,6 +22,8 @@ class Chef(Mobile):
          "moving" : 8,
          "forward"   : 8,
          "back" : 8,
+         "standingforward" : 1,
+         "standingback": 1
       }
 
       self.rowList = {
@@ -29,6 +31,8 @@ class Chef(Mobile):
          "moving" : 1,
          "forward"   : 2,
          "back" : 3,
+         "standingforward" : 4,
+         "standingback": 5
       }
       
       self.framesPerSecondList = {
@@ -36,6 +40,8 @@ class Chef(Mobile):
          "moving" : 8,
          "forward"   : 8,
          "back" : 8,
+         "standingforward" : 1,
+         "standingback": 1
       }
 
       self.FSManimated = WalkingFSM(self)
@@ -44,7 +50,7 @@ class Chef(Mobile):
       self.position = np.array(position, dtype=int)
       self.position = self.position[0], self.position[1]
       self.target_position = None
-      self.speed = 150
+      self.speed = 175
       self.holdingItem = False
       self.itemOffset = vec(70,130)
       self.item = Drawable()
@@ -61,8 +67,7 @@ class Chef(Mobile):
          self.holdingItem = True
 
    def dropOff(self):
-         if self.FSManimated.current_state == self.FSManimated.moving:
-            self.FSManimated.stop()
+
          self.holdingItem = False
          self.item = Drawable()
 

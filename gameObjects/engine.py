@@ -91,10 +91,8 @@ class GameEngine(object):
             self.patty_image.draw(drawSurface)
         for station in self.currently_cooking:
             percentage = station.pattyFSM.get_cooking_percentage()
-            position = (station.centroid[0] - 20, station.centroid[1] - 30)
+            position = (station.centroid[0] -40, station.centroid[1] + 30)
             self.draw_timer(drawSurface, position, 10, percentage)
-
-        
 
         
             
@@ -127,29 +125,33 @@ class GameEngine(object):
                     else:
                         self.trash.close_can()
                         self.chef.pickUp(i.item)
-                        print(self.chef.holdingItem)
 
     def handle_mealprepstation_event(self, new_position):
         for x in self.mealPrepStations:
             if x.collide(new_position):
                 self.chef.move(x.chefPos)
+
             direction = np.array(self.chef.position) - x.chefPos
             distance = np.linalg.norm(direction)
-            if distance < 5:
-                    if self.chef.isHoldingItem():
-                        itemType = self.chef.item.getStateType()
-                        if itemType not in x.burgerFSM.meal:
-                            #if bun, if patty and bun is there and patty is not there, if topping and patty is there
-                            if (itemType == 'bun') or (itemType == 'cooked patty' and 'bun' in x.burgerFSM.meal and 'cooked patty' not in x.burgerFSM.meal) or ((itemType == 'lettuce' or itemType == 'tomato' or itemType == 'cheese') and 'cooked patty' in x.burgerFSM.meal):
-                                self.chef.dropOff()
-                                x.burgerFSM.updateBurger(itemType)
-                                index = self.mealPrepStations.index(x)
-                                self.burger_images[index] = x.burgerFSM.getStateImage((x.centroid[0]-23, x.centroid[1]-35))
-                    elif x.burgerFSM.is_burger_ready() and not self.chef.isHoldingItem():
+
+            if not self.chef.isHoldingItem() and x.collide(new_position):
+                if distance < 5:
+                    if x.burgerFSM.is_burger_ready():
                         index = self.mealPrepStations.index(x)
                         self.chef.pickUp(self.burger_images[index])
                         self.burger_images[index] = None
                         x.burgerFSM.reset()
+            
+            elif self.chef.isHoldingItem() and x.collide(new_position):
+                if distance < 5:
+                    itemType = self.chef.item.getStateType()
+                    if itemType not in x.burgerFSM.meal:
+                        #if bun, if patty and bun is there and patty is not there, if topping and patty is there
+                        if (itemType == 'bun') or (itemType == 'cooked patty' and 'bun' in x.burgerFSM.meal and 'cooked patty' not in x.burgerFSM.meal) or ((itemType == 'lettuce' or itemType == 'tomato' or itemType == 'cheese') and 'cooked patty' in x.burgerFSM.meal):
+                            self.chef.dropOff()
+                            x.burgerFSM.updateBurger(itemType)
+                            index = self.mealPrepStations.index(x)
+                            self.burger_images[index] = x.burgerFSM.getStateImage((x.centroid[0]-23, x.centroid[1]-35))
 
     def handle_cookstation_event(self, new_position):
         for y in self.cookStations:
