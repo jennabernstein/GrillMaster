@@ -38,18 +38,22 @@ class PattyFSM(AbstractGameFSM):
         self.current_state = self.raw
 
     def getStateImage(self, position, offset):
+        if offset == 1:
+            pattyType = 'vegan'
+        else:
+            pattyType = 'meat'
         if self.current_state == self.raw:
             self.patty_image = Drawable(position, "food/burger sprites.png", (offset, 0), 0.5)
-            self.patty_image.stateType = 'raw patty'
+            self.patty_image.stateType = 'raw ' + pattyType + ' patty'
         elif self.current_state == self.cooking:
             self.patty_image = Drawable(position, "food/burger sprites.png", (offset, 1), 0.5)
-            self.patty_image.stateType = 'cooking patty'
+            self.patty_image.stateType = 'cooking ' + pattyType + ' patty'
         elif self.current_state == self.cooked:
             self.patty_image = Drawable(position, "food/burger sprites.png", (offset, 2), 0.5)
-            self.patty_image.stateType = 'cooked patty'
+            self.patty_image.stateType = 'cooked ' + pattyType + ' patty'
         elif self.current_state == self.burnt:
             self.patty_image = Drawable(position, "food/burger sprites.png", (offset, 3), 0.5)
-            self.patty_image.stateType = 'burnt patty'
+            self.patty_image.stateType = 'burnt ' + pattyType + ' patty'
         return self.patty_image
     
     def get_cooking_percentage(self):

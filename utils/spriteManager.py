@@ -62,7 +62,10 @@ class SpriteManager(object):
       # A list of images that require to be loaded with transparency
       _TRANSPARENCY = ["pink counter.png", "pink prep.png", "food/patties.png", "pink long counter.png", "trash cans.png", "food/tomatos.png",
                        "food/lettuce and cheese.png", "food/patty.png", "food/tomato.png", "food/lettuce.png", "food/cheese.png", "food/burger bun.png", "food/plate.png",
-                       "food/burger/bun with plate.png", "food/burger/cheese and tomato with plate.png", "food/burger/cheese, tomato, lettuce with plate.png", "food/burger/cheese with plate.png", "food/burger/lettuce and cheese with plate.png", "food/burger/lettuce and tomato with plate.png", "food/burger/lettuce with plate.png", "food/burger/patty with plate.png", "food/burger/tomato with plate.png"]
+                       "food/burger/bun with plate.png", "food/burger/cheese and tomato with plate.png", "food/burger/cheese, tomato, lettuce with plate.png", "food/burger/cheese with plate.png", "food/burger/lettuce and cheese with plate.png", "food/burger/lettuce and tomato with plate.png", "food/burger/lettuce with plate.png", "food/burger/patty with plate.png", "food/burger/tomato with plate.png",
+                       "tickets/ticket - meat patty.png", "tickets/ticket - meat patty, cheese.png", "tickets/ticket - meat patty, lettuce, cheese.png", "tickets/ticket - meat patty, tomato, lettuce.png", "tickets/ticket - meat patty, lettuce.png", "tickets/ticket - meat patty, tomato, cheese.png", "tickets/ticket - meat patty, tomato, lettuce.png", "tickets/ticket - meat patty, tomato.png",
+                       "tickets/ticket - vegan patty.png", "tickets/ticket - vegan patty, cheese.png", "tickets/ticket - vegan patty, lettuce, cheese.png", "tickets/ticket - vegan patty, tomato, lettuce.png", "tickets/ticket - vegan patty, lettuce.png", "tickets/ticket - vegan patty, tomato, cheese.png", "tickets/ticket - vegan patty, tomato, lettuce.png", "tickets/ticket - vegan patty, tomato.png"]
+
       
       # A list of images that require to be loaded with a color key
       _COLOR_KEY = ["chef sprite.png", "trash.png",  "food/burger sprites.png",

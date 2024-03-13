@@ -50,7 +50,7 @@ class Chef(Mobile):
       self.position = np.array(position, dtype=int)
       self.position = self.position[0], self.position[1]
       self.target_position = None
-      self.speed = 175
+      self.speed = 200
       self.holdingItem = False
       self.itemOffset = vec(70,130)
       self.item = Drawable()
@@ -67,7 +67,6 @@ class Chef(Mobile):
          self.holdingItem = True
 
    def dropOff(self):
-
          self.holdingItem = False
          self.item = Drawable()
 

@@ -13,7 +13,10 @@ class Patties(Drawable):
         self.item.scale((50,50))
         self.row = 0
         self.pattyFSM = PattyFSM(self)
-        self.item.stateType = 'patty'
+        if self.item.offset == 1:
+            self.item.stateType = 'vegan patty'
+        else:
+            self.item.stateType = 'meat patty'
     
     def update(self, seconds):
         super().update(seconds)

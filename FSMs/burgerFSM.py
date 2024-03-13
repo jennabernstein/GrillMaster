@@ -21,13 +21,13 @@ class BurgerFSM(AbstractGameFSM):
         if item not in self.meal:
             if self.current_state.id == 'plate' and item == 'bun':
                 self.assemble()
-            elif self.current_state.id == 'bun' and item == 'cooked patty':
+            elif self.current_state.id == 'bun' and (item == 'cooked meat patty' or item == 'cooked vegan patty'):
                 self.assemble()
-            elif self.current_state.id == 'cooked patty' and item == 'tomato':
+            elif (self.current_state.id == 'cooked vegan patty' or self.current_state.id == 'cooked meat patty') and item == 'tomato':
                 self.assemble()
-            elif self.current_state.id == 'cooked patty' and item == 'lettuce':
+            elif (self.current_state.id == 'cooked vegan patty' or self.current_state.id == 'cooked meat patty') and item == 'lettuce':
                 self.assemble()
-            elif self.current_state.id == 'cooked patty' and item == 'cheese':
+            elif (self.current_state.id == 'cooked vegan patty' or self.current_state.id == 'cooked meat patty') and item == 'cheese':
                 self.assemble()
             elif self.current_state.id == 'tomato' and item == 'lettuce':
                 self.assemble()
@@ -46,29 +46,81 @@ class BurgerFSM(AbstractGameFSM):
     def is_burger_ready(self):
         return self.current_state == self.patty or self.current_state == self.tomato or self.current_state == self.lettuce or self.current_state == self.cheese
 
+
     def reset(self):
         # Reset the FSM to its initial state
         self.current_state = self.plate
         self.meal = []
 
+    def getMeal(self):
+        return self.meal
+
     def getStateImage(self, position):
         if self.meal == []:
-            return Drawable(position, "food/plate.png", None, 0.4)
+            meal = Drawable(position, "food/plate.png", None, 0.4)
         elif self.meal == ['bun']:
-            return Drawable(position, "food/burger/bun with plate.png", None, 0.3)
-        elif 'cooked patty' in self.meal and 'bun' in self.meal and len(self.meal) == 2:
-            return Drawable(position, "food/burger/patty with plate.png", None, 0.3)
-        elif 'cooked patty' in self.meal and 'bun' in self.meal and 'cheese' in self.meal and len(self.meal) == 3:
-            return Drawable(position, "food/burger/cheese with plate.png", None, 0.3)
-        elif 'cooked patty' in self.meal and 'bun' in self.meal and 'tomato' in self.meal and len(self.meal) == 3:
-            return Drawable(position, "food/burger/tomato with plate.png", None, 0.3)
-        elif 'cooked patty' in self.meal and 'bun' in self.meal and 'lettuce' in self.meal and len(self.meal) == 3:
-            return Drawable(position, "food/burger/lettuce with plate.png", None, 0.3)
-        elif 'cooked patty' in self.meal and 'bun' in self.meal and 'tomato' in self.meal and 'cheese' in self.meal and len(self.meal) == 4:
-            return Drawable(position, "food/burger/cheese and tomato with plate.png", None, 0.3)
-        elif 'cooked patty' in self.meal and 'bun' in self.meal and 'tomato' in self.meal and 'lettuce' in self.meal and len(self.meal) == 4:
-            return Drawable(position, "food/burger/lettuce and tomato with plate.png", None, 0.3)
-        elif 'cooked patty' in self.meal and 'bun' in self.meal and 'lettuce' in self.meal and 'cheese' in self.meal and len(self.meal) == 4:
-            return Drawable(position, "food/burger/lettuce and cheese with plate.png", None, 0.3)
-        elif 'cooked patty' in self.meal and 'bun' in self.meal and 'lettuce' in self.meal and 'cheese' in self.meal and 'tomato' in self.meal and len(self.meal) == 5:
-            return Drawable(position, "food/burger/cheese, tomato, lettuce with plate.png", None, 0.3)
+            meal =  Drawable(position, "food/burger/bun with plate.png", None, 0.3)
+        elif ('cooked vegan patty' in self.meal or 'cooked meat patty' in self.meal) and 'bun' in self.meal and len(self.meal) == 2:
+            meal = Drawable(position, "food/burger/patty with plate.png", None, 0.3)
+            meal.stateType = 'burger with '
+            if 'cooked vegan patty' in self.meal:
+                meal.stateType += 'cooked vegan patty'
+            elif 'cooked meat patty' in self.meal:
+                meal.stateType += 'cooked meat patty'
+        elif ('cooked vegan patty' in self.meal or 'cooked meat patty' in self.meal) and 'bun' in self.meal and 'cheese' in self.meal and len(self.meal) == 3:
+            meal = Drawable(position, "food/burger/cheese with plate.png", None, 0.3)
+            meal.stateType = 'burger with '
+            if 'cooked vegan patty' in self.meal:
+                meal.stateType += 'cooked vegan patty'
+            elif 'cooked meat patty' in self.meal:
+                meal.stateType += 'cooked meat patty'
+            meal.stateType += ', cheese'
+        elif ('cooked vegan patty' in self.meal or 'cooked meat patty' in self.meal) and 'bun' in self.meal and 'tomato' in self.meal and len(self.meal) == 3:
+            meal = Drawable(position, "food/burger/tomato with plate.png", None, 0.3)
+            meal.stateType = 'burger with '
+            if 'cooked vegan patty' in self.meal:
+                meal.stateType += 'cooked vegan patty'
+            elif 'cooked meat patty' in self.meal:
+                meal.stateType += 'cooked meat patty'
+            meal.stateType += ', tomato'
+        elif ('cooked vegan patty' in self.meal or 'cooked meat patty' in self.meal) and 'bun' in self.meal and 'lettuce' in self.meal and len(self.meal) == 3:
+            meal = Drawable(position, "food/burger/lettuce with plate.png", None, 0.3)
+            meal.stateType = 'burger with '
+            if 'cooked vegan patty' in self.meal:
+                meal.stateType += 'cooked vegan patty'
+            elif 'cooked meat patty' in self.meal:
+                meal.stateType += 'cooked meat patty'
+            meal.stateType += ', lettuce'
+        elif ('cooked vegan patty' in self.meal or 'cooked meat patty' in self.meal) and 'bun' in self.meal and 'tomato' in self.meal and 'cheese' in self.meal and len(self.meal) == 4:
+            meal = Drawable(position, "food/burger/cheese and tomato with plate.png", None, 0.3)
+            meal.stateType = 'burger with '
+            if 'cooked vegan patty' in self.meal:
+                meal.stateType += 'cooked vegan patty'
+            elif 'cooked meat patty' in self.meal:
+                meal.stateType += 'cooked meat patty'
+            meal.stateType += ', tomato, cheese'
+        elif ('cooked vegan patty' in self.meal or 'cooked meat patty' in self.meal) and 'bun' in self.meal and 'tomato' in self.meal and 'lettuce' in self.meal and len(self.meal) == 4:
+            meal = Drawable(position, "food/burger/lettuce and tomato with plate.png", None, 0.3)
+            meal.stateType = 'burger with '
+            if 'cooked vegan patty' in self.meal:
+                meal.stateType += 'cooked vegan patty'
+            elif 'cooked meat patty' in self.meal:
+                meal.stateType += 'cooked meat patty'
+            meal.stateType += ', tomato, lettuce'
+        elif ('cooked vegan patty' in self.meal or 'cooked meat patty' in self.meal) and 'bun' in self.meal and 'lettuce' in self.meal and 'cheese' in self.meal and len(self.meal) == 4:
+            meal =  Drawable(position, "food/burger/lettuce and cheese with plate.png", None, 0.3)
+            meal.stateType = 'burger with '
+            if 'cooked vegan patty' in self.meal:
+                meal.stateType += 'cooked vegan patty'
+            elif 'cooked meat patty' in self.meal:
+                meal.stateType += 'cooked meat patty'
+            meal.stateType += ', cheese, lettuce'
+        elif ('cooked vegan patty' in self.meal or 'cooked meat patty' in self.meal) and 'bun' in self.meal and 'lettuce' in self.meal and 'cheese' in self.meal and 'tomato' in self.meal and len(self.meal) == 5:
+            meal = Drawable(position, "food/burger/cheese, tomato, lettuce with plate.png", None, 0.3)
+            meal.stateType = 'burger with '
+            if 'cooked vegan patty' in self.meal:
+                meal.stateType += 'cooked vegan patty'
+            elif 'cooked meat patty' in self.meal:
+                meal.stateType += 'cooked meat patty'
+            meal.stateType += ', cheese, tomato, lettuce'
+        return meal

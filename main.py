@@ -1,5 +1,5 @@
 import pygame
-from gameObjects import GameEngine
+from engines import GameEngine
 from utils import RESOLUTION, UPSCALED
 
 def main():
