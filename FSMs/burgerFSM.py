@@ -13,8 +13,9 @@ class BurgerFSM(AbstractGameFSM):
     tomato = State('tomato')
     lettuce = State('lettuce')
     cheese = State('cheese')
+    burger = State('burger')
 
-
+    drop_off_without_assembly = plate.to(burger) | burger.to(plate)
     assemble = plate.to(bun) | bun.to(patty) | patty.to(tomato) | patty.to(lettuce) | patty.to(cheese) | tomato.to(lettuce) | tomato.to(cheese) | lettuce.to(cheese) | lettuce.to(tomato) | cheese.to(lettuce) | cheese.to(tomato)
 
     def updateBurger(self, item):
@@ -42,10 +43,15 @@ class BurgerFSM(AbstractGameFSM):
             elif self.current_state.id == 'cheese' and item == 'tomato':
                 self.assemble()
             self.meal.append(item)
+        if item.split()[0] == 'burger':
+            self.drop_off_without_assembly()
 
     def is_burger_ready(self):
         return self.current_state == self.patty or self.current_state == self.tomato or self.current_state == self.lettuce or self.current_state == self.cheese
 
+    def set_current_state(self, state, meal):
+        self.current_state = state
+        self.meal = meal
 
     def reset(self):
         # Reset the FSM to its initial state

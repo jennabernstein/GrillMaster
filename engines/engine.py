@@ -41,6 +41,8 @@ class GameEngine(object):
         self.foodList = [self.patties1, self.patties2, self.trash, self.tomatoes, self.lettuces, self.cheeses, self.buns]
         self.cookStations = [self.cookStation]
         self.burger_images = [None, None, None]
+        self.burger_state = None
+        self.burger_meal = None
         self.patty_image = None
         self.currently_cooking = []
 
@@ -67,12 +69,19 @@ class GameEngine(object):
         self.current_level = 1
         self.customer_times = [5,15,30,40,60,75,85]
         self.times_used = []
+        self.new_ticket_position = None
 
 
         self.gameClock = pygame.time.Clock()
         self.gameTime = 0
         self.timer = 0
         self.initialTime = 0
+
+        self.dragged_ticket = None
+        self.dragged_ticket_initial_position = None
+        self.dragged_ticket_position = None
+        self.dragging = False
+
         
 
     def scaleDrawable(self, drawable, new_size):
@@ -123,11 +132,15 @@ class GameEngine(object):
 
         for i in self.tickets:
             if i is not None:
-                pygame.draw.rect(drawSurface, (255,0,0),i.image.rect)
-                i.image.draw(drawSurface)
+                if not i.dragging:
+                    pygame.draw.rect(drawSurface, (255,0,0),i.image.rect)
+                    i.image.draw(drawSurface)
         
-        
-
+        for i in self.tickets:
+            if i is not None:
+                if i.dragging:
+                    i.image.draw(drawSurface)
+            
 
     def handleEvent(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -143,9 +156,11 @@ class GameEngine(object):
             #handle serving the meal
             self.handle_serving_meal(new_position)
             #handle fulfilling ticket order
-            self.handle_ticket_fulfillment_event(event.type, new_position)
-        elif event.type == pygame.MOUSEBUTTONUP:
-            self.handle_ticket_fulfillment_event(event.type, new_position)
+            self.handle_ticket_fulfillment_event(event, new_position)
+        else:
+            if event.type == pygame.MOUSEBUTTONUP or event.type == pygame.MOUSEMOTION or event.type == pygame.MOUSEBUTTONDOWN:
+                self.handle_ticket_fulfillment_event(event, event.pos)
+        
                             
         
 
@@ -178,6 +193,8 @@ class GameEngine(object):
                     if x.burgerFSM.is_burger_ready():
                         index = self.mealPrepStations.index(x)
                         self.chef.pickUp(self.burger_images[index])
+                        self.burger_state = x.burgerFSM.current_state
+                        self.burger_meal = x.burgerFSM.meal
                         self.burger_images[index] = None
                         x.burgerFSM.reset()
             
@@ -188,6 +205,13 @@ class GameEngine(object):
                         if (itemType == 'bun') or ((itemType == 'cooked meat patty' or itemType == 'cooked vegan patty') and 'bun' in x.burgerFSM.meal and ('cooked meat patty' not in x.burgerFSM.meal or 'cooked vegan patty' not in x.burgerFSM.meal)) or ((itemType == 'lettuce' or itemType == 'tomato' or itemType == 'cheese') and ('cooked meat patty' in x.burgerFSM.meal or 'cooked vegan patty' in x.burgerFSM.meal)):
                             self.chef.dropOff()
                             x.burgerFSM.updateBurger(itemType)
+                            index = self.mealPrepStations.index(x)
+                            self.burger_images[index] = x.burgerFSM.getStateImage((x.centroid[0]-35, x.centroid[1]-42))
+                        elif itemType.split()[0] == 'burger':
+                            self.chef.dropOff()
+                            x.burgerFSM.set_current_state(self.burger_state, self.burger_meal)
+                            self.burger_state = None
+                            self.burger_meal = None
                             index = self.mealPrepStations.index(x)
                             self.burger_images[index] = x.burgerFSM.getStateImage((x.centroid[0]-35, x.centroid[1]-42))
 
@@ -235,6 +259,7 @@ class GameEngine(object):
                 if w.collide(new_position):
                     if self.chef.isHoldingItem():
                             itemType = self.chef.item.getStateType()
+                            print(itemType)
                             if itemType.split()[0] == 'burger':
                                 item = self.chef.item
                                 self.chef.dropOff()
@@ -245,31 +270,56 @@ class GameEngine(object):
                                         position = (self.servingPlate2.position[0]-10, self.servingPlate2.position[1]-20)
                                     else:
                                         position = (self.servingPlate3.position[0]-10, self.servingPlate3.position[1]-20)
-
+                                    w.mealFSM.position = position
                                     image = w.mealFSM.getStateImage(item, position)
                                     if image is not None:
                                         self.meal_images[a] = image
                                         self.meals[a] = item
                                 w.mealFSM.updateMeal(item)
+                                w.meal = w.mealFSM.getMeal()
                     elif not self.chef.isHoldingItem() and self.meals[a] is not None:
                         self.chef.pickUp(self.meals[a])
                         self.meal_images[a] = None
                         self.meals[a] = None
                         w.mealFSM.reset()
 
-    def handle_ticket_fulfillment_event(self, event_type, new_position):
+    def handle_ticket_fulfillment_event(self, event, new_position):
+        event_type = event.type
         if event_type == pygame.MOUSEBUTTONDOWN:
             for ticket in self.tickets:
                 if ticket is not None:
                     if ticket.image.rect.collidepoint(new_position):
-                        moving = True
-        elif event_type == pygame.MOUSBUTTONUP:
-            moving = False
-            for a in range(len(self.serving_stations)):
-                w = self.serving_stations[a]
-                if w.collide(new_position):
-                    pass
-
+                        # Start dragging the ticket
+                        self.dragged_ticket_initial_position = ticket.image.position
+                        ticket.dragging = True
+        if event_type == pygame.MOUSEMOTION:
+            # Update the position of the dragged ticket
+            for ticket in self.tickets:
+                if ticket is not None:
+                    if ticket.dragging:
+                        ticket.image.position = new_position[0]-50, new_position[1]-50
+        elif event_type == pygame.MOUSEBUTTONUP:
+            for ticket in self.tickets:
+                if ticket is not None:
+                    if ticket.dragging:
+                        # Check if the dragged ticket is dropped onto a serving station
+                        for serving_station in self.serving_stations:
+                            if serving_station.collide(new_position):
+                                print(serving_station.meal, ticket.ticketItems)
+                                if sorted(serving_station.meal) == sorted(ticket.ticketItems):
+                                    # Fulfill the order by updating the meal FSM to the serve state
+                                    serving_station.mealFSM.updateMeal(ticket)
+                                    serving_station.mealFSM.reset()
+                                    station_index = self.serving_stations.index(serving_station)
+                                    self.meal_images[station_index] = serving_station.mealFSM.getStateImage(None, serving_station.mealFSM.position)
+                                    serving_station.meal = serving_station.mealFSM.getMeal()
+                                    # Clear the ticket
+                                    index = self.tickets.index(ticket)
+                                    self.tickets[index] = None
+                                    break
+                                else:
+                                    ticket.image.position = self.dragged_ticket_initial_position
+                        ticket.dragging = False
 
 
     def get_unused_ticket_position(self):
@@ -284,7 +334,6 @@ class GameEngine(object):
                 x.decreasePatience()
         self.chef.update(seconds)
         Drawable.updateOffset(self.chef, self.size)
-        
         if self.chef.isHoldingItem() and (self.chef.item.getStateType() == 'cooked meat patty' or self.chef.item.getStateType() == 'cooked meat patty'):
             self.patty_image = None
         if self.is_time_to_spawn_customer():
@@ -293,7 +342,6 @@ class GameEngine(object):
         self.update_cooking(seconds)
         # Update the meal prep stations
         self.update_meal_prep_stations()
-
 
 
     def update_cooking(self, seconds):
@@ -345,13 +393,11 @@ class GameEngine(object):
             new_customer.order.generateOrder(self.ticket_position3)
             self.tickets[2] = new_customer.order
             self.customers[2] = new_customer
-
         # Adjust the time interval between customer arrivals based on the current level
         self.customer_spawn_interval = max(5, 15 - self.current_level)  
 
 
     def is_time_to_spawn_customer(self):
-
         if int(self.gameTime) in self.customer_times and int(self.gameTime) not in self.times_used:
             self.times_used.append(int(self.gameTime))
             return True

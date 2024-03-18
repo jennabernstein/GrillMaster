@@ -1,5 +1,6 @@
 import pygame
 from engines import GameEngine
+from UI import ScreenManager
 from utils import RESOLUTION, UPSCALED
 
 def main():
@@ -13,13 +14,13 @@ def main():
     screen = pygame.display.set_mode(list(map(int, UPSCALED)))
     drawSurface = pygame.Surface(list(map(int, RESOLUTION)))
 
-    
+    screenManager = ScreenManager()
     gameEngine = GameEngine()
     
     RUNNING = True
     
     while RUNNING:
-        gameEngine.draw(drawSurface)
+        screenManager.draw(drawSurface)
         
         pygame.transform.scale(drawSurface,
                                list(map(int, UPSCALED)),
@@ -36,11 +37,11 @@ def main():
                 # change the value to False, to exit the main loop
                 RUNNING = False
             else:
-                gameEngine.handleEvent(event)
+                screenManager.handleEvent(event)
         
         gameClock.tick(60)
         seconds = gameClock.get_time() / 1000
-        gameEngine.update(seconds)
+        screenManager.update(seconds)
      
     pygame.quit()
 

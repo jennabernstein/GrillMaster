@@ -10,11 +10,12 @@ class Ticket(Drawable):
         self.ticket = Drawable()
         self.image = Drawable()
         self.filled = False
+        self.dragging = False
 
     def generateOrder(self, position):
         meat = random.randint(0,1)
         if meat == 1:
-            self.ticketItems.append('meat patty')
+            self.ticketItems.append('cooked meat patty')
             ticketImage = Drawable(position, "tickets/ticket - meat patty.png", scale=0.3)
             toppings = random.randint(0,2)
             if toppings == 3:
@@ -56,7 +57,7 @@ class Ticket(Drawable):
                             self.ticketItems.append('lettuce')
                             ticketImage = Drawable(position, "tickets/ticket - meat patty, tomato, cheese.png", scale=0.3)
         else:
-            self.ticketItems.append('vegan patty')
+            self.ticketItems.append('cooked vegan patty')
             ticketImage = Drawable(position, "tickets/ticket - vegan patty.png", scale=0.3)
             toppings = random.randint(0,2)
             if toppings == 3:
@@ -93,10 +94,10 @@ class Ticket(Drawable):
                         type = random.choice(['tomato', 'lettuce'])
                         if type == 0:
                             self.ticketItems.append('tomato')
-                            ticketImage = Drawable(position, "tickets/ticket - vegan patty, lettuce, cheese.png", scale=0.3)
+                            ticketImage = Drawable(position, "tickets/ticket - vegan patty, tomato, cheese.png", scale=0.3)
                         else:
                             self.ticketItems.append('lettuce')
-                            ticketImage = Drawable(position, "tickets/ticket - vegan patty, tomato, cheese.png", scale=0.3)
+                            ticketImage = Drawable(position, "tickets/ticket - vegan patty, lettuce, cheese.png", scale=0.3)
         self.image = ticketImage
 
 
@@ -107,6 +108,8 @@ class Ticket(Drawable):
     def highlightTicket(self):
         pass
 
+    def setPosition(self, new_position):
+        self.position = new_position
 
     def finishTicket(self):
         self.filled = True
@@ -115,3 +118,6 @@ class Ticket(Drawable):
     def isFulfilled(self):
         if self.filled:
             return True
+        
+    def getStateType(self):
+        return "ticket"

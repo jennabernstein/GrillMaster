@@ -8,15 +8,16 @@ class ServingStation(Drawable):
         super().__init__()
         self.nFrames = 1
         self.plate = None
-        self.meal = []
         self.points = polygon
         self.polygon = Polygon(polygon)
         self.centroid = (self.polygon.centroid.x, self.polygon.centroid.y)
-        self.chefPos = (self.centroid[0] - 130, self.centroid[1] - 130)
+        self.chefPos = (self.centroid[0] - 140, self.centroid[1] - 140)
         self.mealFSM = MealFSM(self)
+        self.meal = self.mealFSM.getMeal()
     
     def update(self, seconds):
         super().update(seconds)
+        self.meal = self.mealFSM.getMeal()
 
     def collide(self, position):
         position = Point(position)
