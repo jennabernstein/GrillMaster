@@ -13,3 +13,6 @@ from .burgerBunPlate import *
 from .ticket import *
 from .customer import *
 from .servingStation import *
+from .hotDogs import *
+from .hotdogBun import *
+from .customerManager import *

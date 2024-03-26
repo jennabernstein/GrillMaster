@@ -16,7 +16,7 @@ class BurgerFSM(AbstractGameFSM):
     burger = State('burger')
 
     drop_off_without_assembly = plate.to(burger) | burger.to(plate)
-    assemble = plate.to(bun) | bun.to(patty) | patty.to(tomato) | patty.to(lettuce) | patty.to(cheese) | tomato.to(lettuce) | tomato.to(cheese) | lettuce.to(cheese) | lettuce.to(tomato) | cheese.to(lettuce) | cheese.to(tomato)
+    assemble = plate.to(bun) | bun.to(patty) | patty.to(tomato) | patty.to(lettuce) | patty.to(cheese) | tomato.to(lettuce) | tomato.to(cheese) | lettuce.to(cheese) | lettuce.to(tomato) | cheese.to(lettuce) | cheese.to(tomato) | cheese.to(patty) | lettuce.to(patty) | tomato.to(patty)
 
     def updateBurger(self, item):
         if item not in self.meal:
@@ -66,6 +66,27 @@ class BurgerFSM(AbstractGameFSM):
             meal = Drawable(position, "food/plate.png", None, 0.4)
         elif self.meal == ['bun']:
             meal =  Drawable(position, "food/burger/bun with plate.png", None, 0.3)
+        elif 'bun' in self.meal and 'cheese' in self.meal and len(self.meal) == 2:
+            meal = Drawable(position, "food/burger/cheese without patty.png", None, 0.3)
+            meal.stateType = 'bun with cheese'
+        elif 'bun' in self.meal and 'tomato' in self.meal and len(self.meal) == 2:
+            meal = Drawable(position, "food/burger/tomato without patty.png", None, 0.3)
+            meal.stateType = 'bun with tomato'
+        elif 'bun' in self.meal and 'lettuce' in self.meal and len(self.meal) == 2:
+            meal = Drawable(position, "food/burger/lettuce without patty.png", None, 0.3)
+            meal.stateType = 'bun with lettuce'
+        elif 'bun' in self.meal and 'cheese' in self.meal and 'lettuce' in self.meal and len(self.meal) == 3:
+            meal = Drawable(position, "food/burger/lettuce, cheese without patty.png", None, 0.3)
+            meal.stateType = 'bun with lettuce, cheese'
+        elif 'bun' in self.meal and 'cheese' in self.meal and 'tomato' in self.meal and len(self.meal) == 3:
+            meal = Drawable(position, "food/burger/cheese, tomato without patty.png", None, 0.3)
+            meal.stateType = 'bun with cheese, tomato'
+        elif 'bun' in self.meal and 'lettuce' in self.meal and 'tomato' in self.meal and len(self.meal) == 3:
+            meal = Drawable(position, "food/burger/lettuce, tomato without patty.png", None, 0.3)
+            meal.stateType = 'bun with tomato, lettuce'
+        elif 'bun' in self.meal and 'cheese' in self.meal and 'lettuce' in self.meal and 'tomato' in self.meal and len(self.meal) == 4:
+            meal = Drawable(position, "food/burger/cheese, tomato, lettuce without patty.png", None, 0.3)
+            meal.stateType = 'bun with cheese, tomato, lettuce'
         elif ('cooked vegan patty' in self.meal or 'cooked meat patty' in self.meal) and 'bun' in self.meal and len(self.meal) == 2:
             meal = Drawable(position, "food/burger/patty with plate.png", None, 0.3)
             meal.stateType = 'burger with '

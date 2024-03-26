@@ -14,6 +14,8 @@ class ServingStation(Drawable):
         self.chefPos = (self.centroid[0] - 140, self.centroid[1] - 140)
         self.mealFSM = MealFSM(self)
         self.meal = self.mealFSM.getMeal()
+        self.customerPosition = (self.centroid[0] + 20, self.centroid[1]-20)
+        self.customer = None
     
     def update(self, seconds):
         super().update(seconds)

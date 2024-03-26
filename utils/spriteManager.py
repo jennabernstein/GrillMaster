@@ -49,10 +49,16 @@ class SpriteManager(object):
          "food/burger/cheese, tomato, lettuce.png": (50,50), 
          "food/burger/cheese.png": (50,50), 
          "food/burger/lettuce and cheese.png": (50,50), 
-         "food/burger/lettuce and toamto.png": (50,50), 
+         "food/burger/lettuce and tomato.png": (50,50), 
          "food/burger/lettuce.png": (50,50), 
          "food/burger/patty.png": (20,20), 
-         "food/burger/tomato.png": (50,50)
+         "food/burger/tomato.png": (50,50),
+         "food/hot dog/hot dog plate.png": (270,200),
+         "food/hot dog/hot dog bun plate.png": (270,200),
+         "customer1.png": (117, 238),
+         "customer2.png": (117, 238),
+         "customer3.png": (117, 238),
+         "customer4.png": (117, 238)
       }
       
       
@@ -64,7 +70,10 @@ class SpriteManager(object):
                        "food/lettuce and cheese.png", "food/patty.png", "food/tomato.png", "food/lettuce.png", "food/cheese.png", "food/burger bun.png", "food/plate.png",
                        "food/burger/bun with plate.png", "food/burger/cheese and tomato with plate.png", "food/burger/cheese, tomato, lettuce with plate.png", "food/burger/cheese with plate.png", "food/burger/lettuce and cheese with plate.png", "food/burger/lettuce and tomato with plate.png", "food/burger/lettuce with plate.png", "food/burger/patty with plate.png", "food/burger/tomato with plate.png",
                        "tickets/ticket - meat patty.png", "tickets/ticket - meat patty, cheese.png", "tickets/ticket - meat patty, lettuce, cheese.png", "tickets/ticket - meat patty, tomato, lettuce.png", "tickets/ticket - meat patty, lettuce.png", "tickets/ticket - meat patty, tomato, cheese.png", "tickets/ticket - meat patty, tomato, lettuce.png", "tickets/ticket - meat patty, tomato.png",
-                       "tickets/ticket - vegan patty.png", "tickets/ticket - vegan patty, cheese.png", "tickets/ticket - vegan patty, lettuce, cheese.png", "tickets/ticket - vegan patty, tomato, lettuce.png", "tickets/ticket - vegan patty, lettuce.png", "tickets/ticket - vegan patty, tomato, cheese.png", "tickets/ticket - vegan patty, tomato, lettuce.png", "tickets/ticket - vegan patty, tomato.png"]
+                       "tickets/ticket - vegan patty.png", "tickets/ticket - vegan patty, cheese.png", "tickets/ticket - vegan patty, lettuce, cheese.png", "tickets/ticket - vegan patty, tomato, lettuce.png", "tickets/ticket - vegan patty, lettuce.png", "tickets/ticket - vegan patty, tomato, cheese.png", "tickets/ticket - vegan patty, tomato, lettuce.png", "tickets/ticket - vegan patty, tomato.png",
+                       "food/burger/cheese without patty.png", "food/burger/lettuce without patty.png", "food/burger/tomato without patty.png", "food/burger/cheese, tomato without patty.png", "food/burger/cheese, tomato, lettuce without patty.png", "food/burger/lettuce, cheese without patty.png", "food/burger/lettuce, tomato without patty.png",
+                       "food/hot dog/burnt hot dog meat.png", "food/hot dog/cooked hot dog meat.png", "food/hot dog/hot dog meat.png", "food/hot dog/cooked hot dog with plate.png", "food/hot dog/hot dog bun plate.png", "food/hot dog/hot dog bun.png", "food/hot dog/hot dog plate.png", "food/hot dog/cooked hot dog with plate.png", "food/hot dog/hot dog bun with plate.png",
+                       "customer1.png", "customer2.png", "customer3.png", "customer4.png"]
 
       
       # A list of images that require to be loaded with a color key

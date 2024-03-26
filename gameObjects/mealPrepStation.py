@@ -1,7 +1,7 @@
 from . import Drawable
 import pygame
 from shapely.geometry import Point, Polygon
-from FSMs.burgerFSM import BurgerFSM
+from FSMs import BurgerFSM, HotDogMealFSM
 
 class MealPrepStation(Drawable):
     def __init__(self, polygon):
@@ -14,6 +14,7 @@ class MealPrepStation(Drawable):
         self.centroid = (self.polygon.centroid.x, self.polygon.centroid.y)
         self.chefPos = (self.centroid[0] - 120, self.centroid[1] - 80)
         self.burgerFSM = BurgerFSM(self)
+        self.hotdogMealFSM = HotDogMealFSM(self)
     
     def update(self, seconds):
         super().update(seconds)

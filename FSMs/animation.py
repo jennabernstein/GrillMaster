@@ -102,3 +102,43 @@ class WalkingFSM(AnimateFSM):
                 self.flip = False
         self.obj.image = SpriteManager.getInstance().getSprite(self.obj.imageName,
                                                                (self.obj.frame, self.obj.row), self.obj.scale, self.flip)
+        
+
+
+class CustomerWalkingFSM(AnimateFSM):
+    """Two-state FSM for walking / stopping in
+       a top-down environment."""
+       
+    moving = State(initial=True)
+    standing = State()
+    
+    move = standing.to(moving) | moving.to(moving)
+    stop = moving.to(standing)
+    
+    def updateState(self):
+        if self.hasVelocity() and self.current_state != self.moving:
+            self.move()
+        elif not self.hasVelocity() and self.current_state != self.standing:
+            self.stop()
+    
+    def hasVelocity(self):
+        return magnitude(self.obj.velocity) > EPSILON
+    
+    def noVelocity(self):
+        return not self.hasVelocity()
+    
+    def updateMovement(self, seconds):
+        if self.current_state == self.moving:
+            self.updateAnimation(seconds)
+
+    def updateAnimation(self, seconds):
+        state = self.current_state.id
+        self.obj.row = self.obj.rowList[state]
+        self.obj.nFrames = self.obj.nFramesList[state]
+        self.obj.framesPerSecond = self.obj.framesPerSecondList[state]
+        self.obj.image = SpriteManager.getInstance().getSprite(
+            self.obj.imageName,
+            (self.obj.frame, self.obj.row),
+            self.obj.scale,
+            False  # Assuming flip is always False for customers
+        )
