@@ -7,6 +7,8 @@ class Trash(Drawable):
         self.nFrames = 2
         self.opened = False
         self.chefPos = (-20, 0)
+        self.item = Drawable()
+        self.item.stateType = 'trash'
 
     def open_can(self):
         self.opened = True

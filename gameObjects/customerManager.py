@@ -9,9 +9,11 @@ class CustomerManager():
         self.nextCustomers = []
         self.timer = 0
         self.usedName = []
-        self.names = ['Alice', 'Bob', 'Charlie', 'David', 'Eva', 'Frank', 'Chad']
+        self.names = ["Eva", "Ana", "Mia", "Ella", "Sofia", "Claire", "Liam", "Jake", "Clay", "Pete", "Sean", "Sam",
+                      "Leo", "Noah", "Liam", "Oli", "Jay", "Jack", "Ben", "Eli", "Will", "Alex", "Lucas", "Will"]
         self.stations = [None, None, None]
         self.customers_done = []
+        self.level1spawn = False
 
     def get_queue(self):
         return self.queue
@@ -26,7 +28,6 @@ class CustomerManager():
             index = self.queue.index(person)
             self.queue[index] = None
             self.stations[index].customer = None
-            print(self.queue)
     
     def add_person(self):
         customer = Customer(self.generateName())
@@ -57,10 +58,10 @@ class CustomerManager():
                 if i.isSatisfied() or i.is_unpatient():
                     self.customers_done.append(i)
                     self.remove_person(i)
+                    self.level1spawn = True
                     
 
     def generateName(self):
         name = random.choice(self.names)
         self.names.remove(name)
-        print(self.names, name)
         return name

@@ -50,7 +50,7 @@ class Chef(Mobile):
       self.position = np.array(position, dtype=int)
       self.position = self.position[0], self.position[1]
       self.target_position = None
-      self.speed = 200
+      self.speed = 250
       self.holdingItem = False
       self.itemOffset = vec(70,110)
       self.item = Drawable()
@@ -63,6 +63,10 @@ class Chef(Mobile):
          
    def pickUp(self, item):
          if not self.holdingItem:
+            if item.stateType == 'cola':
+               self.itemOffset = vec(50,70)
+            else:
+               self.itemOffset = vec(70,110)
             self.item = item
          self.holdingItem = True
 

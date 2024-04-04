@@ -9,6 +9,7 @@ from utils import vec, RESOLUTION
 import numpy as np
 from FSMs import LevelProgressFSM
 
+
 class GameEngine(object):
     import pygame
 

@@ -16,13 +16,11 @@ class HotDogMealFSM(AbstractGameFSM):
     assemble = plate.to(bun) | bun.to(hotdog) | hotdog.to(hotdog)
 
     def updateHotDog(self, item):
-        print(item)
         if item not in self.meal:
             if self.current_state.id == 'plate' and item == 'hot dog bun':
                 self.assemble()
             elif self.current_state.id == 'bun' and item == 'cooked hot dog meat':
                 self.assemble()
-            print(self.current_state.id)
             self.meal.append(item)
         if item.split()[0] == 'hot dog meal':
             self.drop_off_without_assembly()
@@ -43,7 +41,6 @@ class HotDogMealFSM(AbstractGameFSM):
         return self.meal
 
     def getStateImage(self, position):
-        print(self.meal)
         if self.meal == []:
             meal = Drawable(position, "food/plate.png", None, 0.4)
         elif self.meal == ['hot dog bun']:

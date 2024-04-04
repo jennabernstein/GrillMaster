@@ -10,6 +10,7 @@ from utils import vec, RESOLUTION
 import numpy as np
 from FSMs import LevelProgressFSM
 
+
 class GameEngine2(GameEngine):
     import pygame
 
@@ -32,6 +33,7 @@ class GameEngine2(GameEngine):
         self.hotdogmeat_plate.scale((70,60))
         self.hotdogbun_plate = HotDogBuns((20, 290))
         self.hotdogbun_plate.scale((70,60))
+        self.cola_machine = ColaMachine((780,250))
         self.orderPrepStation1 = MealPrepStation([(575,235), (640,200), (560,150), (500,190)])
         self.plate1 = Drawable((540,170), "food/plate.png", (0,0), 0.3)
         self.orderPrepStation2 = MealPrepStation([(575,235), (640,200), (710,240), (650,280)])
@@ -74,13 +76,14 @@ class GameEngine2(GameEngine):
         self.ticket_position1 = (580,5)
         self.ticket_position2 = (690, 5)
         self.ticket_position3 = (800, 5)
+        self.ticket_positions = [self.ticket_position1, self.ticket_position2, self.ticket_position3]
 
         self.current_patty_offset = 0
         self.tickets_created = []
         self.customer_spawn_interval = 10  
         self.last_order_fulfilled_time = 0
         self.current_level = 2
-        self.customer_times = [5,20,40,55,70,90,100]
+        self.customer_times = [5,25,40,70,85]
         self.times_used = []
         self.new_ticket_position = None
 
@@ -93,17 +96,22 @@ class GameEngine2(GameEngine):
         self.dragged_ticket = None
         self.dragged_ticket_initial_position = None
         self.dragged_ticket_position = None
+        self.dragged_cola_initial_position = None
+        self.dragged_name_initial_position = None
         self.dragging = False
 
         self.loaded = False
 
         self.score = 0
-        self.score_to_complete = 400
+        self.score_to_complete = 700
         self.customers_served = []
         self.customers_done = []
-        self.customers_to_serve = 7
+        self.customers_to_serve = 5
         self.gameOver = False
         self.customers_next = []
+
+        self.draw_cola = [False, False, False]
+        self.cola_pictures = [None, None, None]
 
 
     def scaleDrawable(self, drawable, new_size):
@@ -129,7 +137,6 @@ class GameEngine2(GameEngine):
         self.tomatoes.draw(drawSurface)
         self.cheeses.draw(drawSurface)
         self.lettuces.draw(drawSurface)
-        #pygame.draw.rect(drawSurface, (255,255,255),self.hotdogmeat_plate.rect)
         self.hotdogmeat_plate.draw(drawSurface)
         self.buns.draw(drawSurface)
         self.hotdogbun_plate.draw(drawSurface)
@@ -158,25 +165,51 @@ class GameEngine2(GameEngine):
         self.servingPlate1.draw(drawSurface)
         self.servingPlate2.draw(drawSurface)
         self.servingPlate3.draw(drawSurface)
+
+        self.menu_instructions = TextEntry((5,5), "Press m to return to main menu", "default10")
+        self.menu_instructions.draw(drawSurface)
+        self.score_display = TextEntry((5,25), "Score: " + self.getScore(), "default15")
+        self.score_display.draw(drawSurface)
+
+        image = self.cola_machine.colaMachineFSM.getStateImage(self.cola_machine.position)
+        image.draw(drawSurface)
         
         for plate in self.meal_images:
             if plate is not None:
                 plate.draw(drawSurface)
+                    
 
-        for i in self.tickets:
-            if i is not None:
-                if not i.dragging:
-                    pygame.draw.rect(drawSurface, (255,0,0),i.image.rect)
-                    i.image.draw(drawSurface)
+        for i in range(len(self.draw_cola)):
+            if self.draw_cola[i]:
+                if i == 0:
+                    position = self.serving_stations[i].centroid.x-10, self.serving_stations[i].centroid.y - 90
+                elif i in [1,2]:
+                    position = self.serving_stations[i].centroid.x-25, self.serving_stations[i].centroid.y - 80
+                cola =  Drawable(position, "food/cola.png")
+                cola.scale((100,100))
+                cola.stateType = 'cola'
+                self.cola_pictures[i] = cola
         
-        for i in self.tickets:
-            if i is not None:
-                if i.dragging:
-                    i.image.draw(drawSurface)
+        for c in self.cola_pictures:
+            if c is not None:
+                c.draw(drawSurface)
+
+        for i in range(len(self.tickets)):
+            if self.tickets[i] is not None:
+                customer = self.customers[i]
+                self.tickets[i].image.draw(drawSurface)
+                self.tickets[i].customerName.draw(drawSurface)
+                if 'cola' in self.tickets[i].ticketItems:
+                    self.tickets[i].cola.draw(drawSurface)        
+
 
         for customer in self.customer_queue:
             if customer is not None:
                 customer.draw(drawSurface)
+                customerName = TextEntry((customer.timer_position[0]+10,customer.timer_position[1]+20), customer.name, "default10")
+                customer_percentage = customer.get_patience_percentage()
+                self.draw_customer_timer(drawSurface, customer.timer_position, 10, customer_percentage)
+                customerName.draw(drawSurface)
             if customer is None:
                 index = self.customer_queue.index(customer)
                 if self.tickets[index] is not None:
@@ -198,12 +231,14 @@ class GameEngine2(GameEngine):
             self.handle_serving_meal(new_position)
             #handle fulfilling ticket order
             self.handle_ticket_fulfillment_event(event, new_position)
+            #handle cola machine event
+            self.handle_cola_event(new_position)
         else:
             if event.type == pygame.MOUSEBUTTONUP or event.type == pygame.MOUSEMOTION or event.type == pygame.MOUSEBUTTONDOWN:
                 self.handle_ticket_fulfillment_event(event, event.pos)
-        
-                            
-        
+           
+    def getScore(self):
+        return str(self.score)
 
     def handle_foodlist_event(self, new_position):
         for i in self.foodList:
@@ -276,6 +311,7 @@ class GameEngine2(GameEngine):
                             self.hotdog_meal = None
                             index = self.mealPrepStations.index(x)
                             self.hotdog_images[index] = x.hotdogMealFSM.getStateImage((x.centroid[0]-35, x.centroid[1]-30))
+
 
     def handle_cookstation_event(self, new_position):
         for y in self.cookStations:
@@ -369,50 +405,103 @@ class GameEngine2(GameEngine):
                                         self.meals[a] = item
                                 w.mealFSM.updateMeal(item)
                                 w.meal = w.mealFSM.getMeal()
-                    elif not self.chef.isHoldingItem() and self.meals[a] is not None:
-                        self.chef.pickUp(self.meals[a])
-                        self.meal_images[a] = None
-                        self.meals[a] = None
-                        w.mealFSM.reset()
+                            elif itemType == 'cola' and 'cola' not in w.mealFSM.meal:
+                                item = self.chef.item
+                                w.meal = w.mealFSM.getMeal()
+                                w.mealFSM.meal.append(item.stateType)
+                                self.draw_cola[a] = True
+                                self.chef.dropOff()
+                    elif not self.chef.isHoldingItem():
+                        if self.meals[a] is not None:
+                            self.chef.pickUp(self.meals[a])
+                            self.meal_images[a] = None
+                            self.meals[a] = None
+                            w.mealFSM.reset()
+                        elif self.draw_cola[a] and w.mealFSM.meal == ['cola']:
+                            self.chef.pickUp(self.cola_machine.item)
+                            self.serving_stations[a].meal = []
+                            w.mealFSM.meal = []
+                            self.cola_pictures[a] = None
+                            self.draw_cola[a] = False
+
 
     def handle_ticket_fulfillment_event(self, event, new_position):
         event_type = event.type
         if event_type == pygame.MOUSEBUTTONDOWN:
-            for ticket in self.tickets:
+            for i in range(len(self.tickets)):
+                ticket = self.tickets[i]
                 if ticket is not None:
                     if ticket.image.rect.collidepoint(new_position):
                         # Start dragging the ticket
                         self.dragged_ticket_initial_position = ticket.image.position
+                        self.dragged_ticketRect_initial_position = (ticket.image.rect.left, ticket.image.rect.top)
+                        self.dragged_cola_initial_position = ticket.cola.position
+                        self.dragged_name_initial_position = ticket.customerName.position
                         ticket.dragging = True
+                        cola = ticket.cola
+                        cola.position = (ticket.image.position[0]+45,ticket.image.position[1]-10)
+                        customerName = ticket.customerName
+                        customerName.position = (ticket.image.position[0]+10,ticket.image.position[1]+25)
+                        ticket.name = self.customers[i].name
         if event_type == pygame.MOUSEMOTION:
             # Update the position of the dragged ticket
-            for ticket in self.tickets:
+            for i in range(len(self.tickets)):
+                ticket = self.tickets[i]
                 if ticket is not None:
                     if ticket.dragging:
                         ticket.image.position = new_position[0]-50, new_position[1]-50
+                        ticket.updateRectPosition((new_position[0]-50, new_position[1]-50))
+                        cola = ticket.cola
+                        cola.position = (ticket.image.position[0]+45,ticket.image.position[1]-10)
+                        customerName = ticket.customerName
+                        customerName.position = (ticket.image.position[0]+10,ticket.image.position[1]+25)
+                        ticket.name = self.customers[i].name
         elif event_type == pygame.MOUSEBUTTONUP:
             for ticket in self.tickets:
                 if ticket is not None:
                     if ticket.dragging:
                         # Check if the dragged ticket is dropped onto a serving station
                         for serving_station in self.serving_stations:
-                            if serving_station.collide(new_position):
-                                if sorted(serving_station.meal) == sorted(ticket.ticketItems):
-                                    # Fulfill the order by updating the meal FSM to the serve state
-                                    serving_station.mealFSM.updateMeal(ticket)
-                                    serving_station.mealFSM.reset()
-                                    station_index = self.serving_stations.index(serving_station)
-                                    self.meal_images[station_index] = serving_station.mealFSM.getStateImage(None, serving_station.mealFSM.position)
-                                    serving_station.meal = serving_station.mealFSM.getMeal()
-                                    # Clear the ticket
-                                    index = self.tickets.index(ticket)
-                                    self.tickets[index] = None
-                                    self.customer_queue[index].order.filled = True
-                                    self.score += 400
-                                    self.customers_served.append(serving_station.customer)
-                                else:
-                                    ticket.image.position = self.dragged_ticket_initial_position
+                            if serving_station.rectangles_collide(ticket.image.rect) or serving_station.collide(new_position):
+                                if serving_station.customer is not None:
+                                    if sorted(serving_station.meal) == sorted(ticket.ticketItems) and serving_station.customer.name == ticket.name:
+                                        # Fulfill the order by updating the meal FSM to the serve state
+                                        serving_station.mealFSM.updateMeal(ticket)
+                                        serving_station.mealFSM.reset()
+                                        station_index = self.serving_stations.index(serving_station)
+                                        self.meal_images[station_index] = serving_station.mealFSM.getStateImage(None, serving_station.mealFSM.position)
+                                        serving_station.meal = serving_station.mealFSM.getMeal()
+                                        self.ticket_dragged = True
+                                        # Clear the ticket
+                                        index = self.tickets.index(ticket)
+                                        self.tickets[index] = None
+                                        self.customer_queue[index].order.filled = True
+                                        self.score += serving_station.customer.getScore()
+                                        self.customers_served.append(serving_station.customer)
+                                        self.current_time = self.gameTime
+                                        self.draw_cola[station_index] = False
+                                        self.cola_pictures[station_index] = None
+                                
+                        ticket.image.position = self.dragged_ticket_initial_position
+                        ticket.updateRectPosition(self.dragged_ticketRect_initial_position)
+                        ticket.cola.position = self.dragged_cola_initial_position
+                        ticket.customerName.position = self.dragged_name_initial_position
                         ticket.dragging = False
+
+
+    def handle_cola_event(self, new_position):
+        if self.cola_machine.collide(new_position):
+                self.chef.move(self.cola_machine.chefPos)
+        direction = np.array(self.chef.position) - self.cola_machine.chefPos
+        distance = np.linalg.norm(direction)
+        if distance < 5:
+            if self.cola_machine.collide(new_position):
+                if not self.chef.isHoldingItem():
+                    if self.cola_machine.colaMachineFSM.current_state_value in ['one_can', 'two_cans', 'three_cans']:
+                        self.chef.pickUp(self.cola_machine.item)
+                        self.cola_machine.time -= 10
+                        self.cola_machine.colaMachineFSM.takeCan()
+
 
 
     def get_unused_ticket_position(self):
@@ -432,8 +521,8 @@ class GameEngine2(GameEngine):
     def update(self, seconds):
         if len(self.customers_done) >= self.customers_to_serve:
             self.gameOver = True
-            print(self.gameOver, self.customers_done, self.customers_served, self.customers_to_serve)
         self.gameTime += seconds
+        self.cola_machine.time += seconds        
         self.customer_queue = self.customerManager.get_queue()
         self.customers_done = self.customerManager.get_customers_done()
         for x in self.customer_queue:
@@ -460,13 +549,19 @@ class GameEngine2(GameEngine):
                     freeStation = True
             if freeStation == True:
                 self.spawn_customer(self.customers_next[0])
-                self.customers_next.remove(0)
+                self.customers_next.remove(self.customers_next[0])
         # Update the cooking process
         self.update_cooking(seconds)
         # Update the meal prep stations
         self.update_meal_prep_stations()       
         self.customerManager.update_timer(seconds)
         self.customerManager.update_queue(seconds)
+        if self.cola_machine.time //10 == 1 and self.cola_machine.colaMachineFSM.current_state_value == 'empty':
+            self.cola_machine.colaMachineFSM.update_machine()
+        if self.cola_machine.time //10 == 2 and self.cola_machine.colaMachineFSM.current_state_value == 'one_can':
+            self.cola_machine.colaMachineFSM.update_machine()
+        if self.cola_machine.time //10 >= 3 and self.cola_machine.colaMachineFSM.current_state_value in ['two_cans', 'three_cans']:
+            self.cola_machine.colaMachineFSM.update_machine()
 
 
 
@@ -499,7 +594,11 @@ class GameEngine2(GameEngine):
             self.draw_arc(drawSurface, position, radius, max(0, percentage - 1)*2, (255, 255, 0))
         elif percentage > 1.5:
             pygame.draw.circle(drawSurface, (255, 0, 0), position, radius)
-
+    
+    def draw_customer_timer(self, drawSurface, position, radius, percentage):
+        pygame.draw.circle(drawSurface, (0, 0, 0), position, radius)
+        if 0 < percentage < 1:
+            self.draw_arc(drawSurface, position, radius, percentage, (0, 255, 0))
 
     def draw_arc(self, drawSurface, position, radius, percentage, color):
         angle = 360 * percentage

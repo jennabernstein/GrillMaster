@@ -9,3 +9,4 @@ from .hotdogFSM import *
 from .hotdogMealFSM import *
 from .levelFSM import *
 from .levelProgressFSM import *
+from .colaMachineFSM import *

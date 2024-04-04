@@ -1,6 +1,5 @@
-from gameObjects import Drawable
+from gameObjects import Drawable, TextEntry
 from utils.vector import vec, magnitude
-from . import TextEntry
 
 import pygame
 

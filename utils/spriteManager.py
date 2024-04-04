@@ -58,7 +58,8 @@ class SpriteManager(object):
          "customer1.png": (117, 238),
          "customer2.png": (117, 238),
          "customer3.png": (117, 238),
-         "customer4.png": (117, 238)
+         "customer4.png": (117, 238),
+         "cola machine.png": (163,194)
       }
       
       
@@ -73,7 +74,7 @@ class SpriteManager(object):
                        "tickets/ticket - vegan patty.png", "tickets/ticket - vegan patty, cheese.png", "tickets/ticket - vegan patty, lettuce, cheese.png", "tickets/ticket - vegan patty, tomato, lettuce.png", "tickets/ticket - vegan patty, lettuce.png", "tickets/ticket - vegan patty, tomato, cheese.png", "tickets/ticket - vegan patty, tomato, lettuce.png", "tickets/ticket - vegan patty, tomato.png",
                        "food/burger/cheese without patty.png", "food/burger/lettuce without patty.png", "food/burger/tomato without patty.png", "food/burger/cheese, tomato without patty.png", "food/burger/cheese, tomato, lettuce without patty.png", "food/burger/lettuce, cheese without patty.png", "food/burger/lettuce, tomato without patty.png",
                        "food/hot dog/burnt hot dog meat.png", "food/hot dog/cooked hot dog meat.png", "food/hot dog/hot dog meat.png", "food/hot dog/cooked hot dog with plate.png", "food/hot dog/hot dog bun plate.png", "food/hot dog/hot dog bun.png", "food/hot dog/hot dog plate.png", "food/hot dog/cooked hot dog with plate.png", "food/hot dog/hot dog bun with plate.png",
-                       "customer1.png", "customer2.png", "customer3.png", "customer4.png"]
+                       "customer1.png", "customer2.png", "customer3.png", "customer4.png", "cola machine.png", "food/cola.png"]
 
       
       # A list of images that require to be loaded with a color key

@@ -1,4 +1,4 @@
-from .text import *
+
 from .menu import *
 from .levelManager import *
 from .levelManagerThreaded import *

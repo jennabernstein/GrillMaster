@@ -1,10 +1,9 @@
 from FSMs import LevelFSM
-from engines import GameEngine, GameEngine1, GameEngine2, GameEngine3, ThreadedGameEngine
+from engines import GameEngine, InstructionsEngine, GameEngine2, GameEngine3, ThreadedGameEngine
 import pygame
 
 class LevelManager:
     def __init__(self, numLevels=3):
-        print(numLevels)
         self.levels = [ThreadedGameEngine() for _ in range(numLevels)]
         self.state = LevelFSM(self, numLevels)
 

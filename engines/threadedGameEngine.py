@@ -1,4 +1,4 @@
-from . import GameEngine1, GameEngine2, GameEngine3
+from . import InstructionsEngine, GameEngine2, GameEngine3
 import threading
 import time
 from FSMs import LevelProgressFSM
@@ -7,46 +7,39 @@ from FSMs import LevelProgressFSM
 class ThreadedGameEngine():
     def __init__(self): 
         self.levelProgress = LevelProgressFSM(self)
-        self.games = [GameEngine1(), GameEngine2(), GameEngine3()]
+        self.games = [InstructionsEngine(), GameEngine2(), GameEngine3()]
         self.game = None
     
-    def getGameEngine(self):
+    def getGameEngine(self, instructions=False):
         if self.levelProgress.current_state_value == 'level1':
-            game = self.games[0]
-        elif self.levelProgress.current_state_value == 'level2':
             game = self.games[1]
-        elif self.levelProgress.current_state_value == 'level3':
+        elif self.levelProgress.current_state_value == 'level2':
             game = self.games[2]
+        if instructions:
+            game = self.games[0]
         return game
 
     def setCurrentGame(self, engine):
-        if engine == 'level1':
+        if engine == 'instructions':
             self.game = self.games[0]
-        elif engine == 'level2':
+        elif engine == 'level1':
             self.game = self.games[1]
-        elif engine == 'level3':
+        elif engine == 'level2':
             self.game = self.games[2]
 
     def setNewGame(self, level):
         if level == 'level1':
-            print(self.games)
-            self.games[0] = GameEngine1()
-            self.game = self.games[0]
-            print(self.games)
-        elif level == 'level2':
             self.games[1] = GameEngine2()
             self.game = self.games[1]
-        elif level == 'level3':
+        elif level == 'level2':
             self.games[2] = GameEngine3()
             self.game = self.games[2]
 
     def update(self, seconds):
         if self.levelProgress.current_state_value == 'level1':
-            self.game = self.game = self.games[0]
+            self.game = self.games[1]
         elif self.levelProgress.current_state_value == 'level2':
-            self.game = self.game = self.games[1]
-        elif self.levelProgress.current_state_value == 'level3':
-            self.game = self.game = self.games[2]
+            self.game = self.games[2]
         self.game.update(seconds)
 
     def handleEvent(self, event):

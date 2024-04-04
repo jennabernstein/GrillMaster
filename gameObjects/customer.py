@@ -7,21 +7,21 @@ import numpy as np
 
 class Customer(Drawable):   
     def __init__(self, name):
-        if name in ['Alice']:
-            image = "customer1.png"
-        elif name in ['Eva']:
-            image = "customer2.png"
-        elif name in ['Bob', 'Charlie', 'Chad']:
+        if name in ["Eva", "Ana", "Mia", "Ella", "Sofia", "Claire"]:
             image = "customer3.png"
-        elif name in ['David', 'Frank']:
+        elif name in ["Liam", "Jake", "Clay", "Pete", "Sean", "Sam"]:
             image = "customer4.png"
+        elif name in ["Leo", "Noah", "Liam", "Oli", "Jay", "Jack"]:
+            image = "customer1.png"
+        elif name in ["Ben", "Eli", "Will", "Alex", "Lucas", "Will"]:
+            image = "customer2.png"
         super().__init__((500, 500), image, offset=(0,0), scale=1)
         self.patience = 40  # Initial patience level (adjust as needed)
         self.preferred_dish = None
-        self.order = Ticket()
+        self.order = Ticket(name)
         self.current_patience = 0
         self.speed = 100
-        self.name = ''
+        self.name = name
         self.station = None
         self.framesPerSecond = 12
         self.nFrames = 8
@@ -31,6 +31,9 @@ class Customer(Drawable):
         #self.FSManimated = CustomerWalkingFSM(self)
         self.target_position = None
         self.start_time = 0
+        self.timer_position = self.position[0] + 125, self.position[1] + 150
+
+        self.timer = None
 
     def needToMove(self):
         if self.target_position is not None:
@@ -49,9 +52,27 @@ class Customer(Drawable):
         # You can compare the order with the player's prepared dishes
         return self.order.isFulfilled()
     
+    def getScore(self):
+        if self.is_unpatient():
+            score = 0
+        elif self.get_patience_percentage() >= .75:
+            score = 300
+        elif self.get_patience_percentage() >= .5:
+            score = 200
+        elif self.get_patience_percentage() >= .25:
+            score = 100
+        else:
+            score = 75
+        score += int(self.get_patience_percentage() * 100)
+        print(self.get_patience_percentage())
+        return score
+    
     def is_unpatient(self):
         if self.current_patience == self.patience:
             return True
+        
+    def get_patience_percentage(self):
+        return self.current_patience / self.patience
 
     def generateCustomerImage(self, row):
         self.row = row
@@ -64,6 +85,7 @@ class Customer(Drawable):
         if station is not None:
             self.target_position = station.customerPosition
             self.position = self.target_position
+            self.timer_position = self.position[0] + 100, self.position[1] + 100
             #self.FSManimated.move()
         else:
             self.target_position = None
@@ -82,6 +104,4 @@ class Customer(Drawable):
                 self.position = np.array(self.target_position, dtype=int)
                 self.target_position = None
                 self.velocity = np.array([0, 0], dtype=int)
-        #print(self.FSManimated.current_state)
-        #self.FSManimated.updateState()
-        #self.FSManimated.updateMovement(seconds)
+

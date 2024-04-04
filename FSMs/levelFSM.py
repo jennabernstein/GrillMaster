@@ -18,4 +18,3 @@ class LevelFSM(AbstractGameFSM):
     def on_enter_loading(self):
         if self.currentLevel < self.maxLevels - 1:
             self.currentLevel += 1
-        print(self.currentLevel)

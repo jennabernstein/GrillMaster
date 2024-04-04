@@ -1,4 +1,6 @@
+
 from .drawable import *
+from .text import *
 from .animated import *
 from .mobile import *
 from .chef import *
@@ -16,3 +18,4 @@ from .servingStation import *
 from .hotDogs import *
 from .hotdogBun import *
 from .customerManager import *
+from .colaMachine import *

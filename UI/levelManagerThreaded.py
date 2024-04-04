@@ -1,6 +1,7 @@
-from . import LevelManager, EventMenu, TextEntry
+from . import LevelManager, EventMenu
 from engines import ThreadedGameEngine
 from FSMs import LevelFSM, LevelProgressFSM
+from gameObjects import TextEntry
 from utils import RESOLUTION
 import threading
 import time
@@ -15,7 +16,6 @@ class LevelManagerThreaded(LevelManager):
         self.state = LevelFSM(self, 3)
 
     def draw(self, surface):      
-        print(self.state.current_state_value)
         if self.state.current_state_value == "activeLevel":
             super().draw(surface)
         elif self.state.current_state_value == "loading":
