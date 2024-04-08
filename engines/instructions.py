@@ -33,6 +33,7 @@ class InstructionsEngine(GameEngine):
         self.hotdogmeat_plate.scale((70,60))
         self.hotdogbun_plate = HotDogBuns((20, 290))
         self.hotdogbun_plate.scale((70,60))
+        self.cola_machine = ColaMachine((780,250))
         self.orderPrepStation1 = MealPrepStation([(575,235), (640,200), (560,150), (500,190)])
         self.plate1 = Drawable((540,170), "food/plate.png", (0,0), 0.3)
         self.orderPrepStation2 = MealPrepStation([(575,235), (640,200), (710,240), (650,280)])
@@ -55,7 +56,7 @@ class InstructionsEngine(GameEngine):
         self.hotdog_image = None
         self.hotdog_state = None
         self.currently_cooking = []
-        self.level = 1
+        self.level = 2
         self.customerManager = CustomerManager(self.level)
         self.customer_queue = self.customerManager.get_queue()
 
@@ -75,12 +76,14 @@ class InstructionsEngine(GameEngine):
         self.ticket_position1 = (580,5)
         self.ticket_position2 = (690, 5)
         self.ticket_position3 = (800, 5)
+        self.ticket_positions = [self.ticket_position1, self.ticket_position2, self.ticket_position3]
 
         self.current_patty_offset = 0
         self.tickets_created = []
         self.customer_spawn_interval = 10  
         self.last_order_fulfilled_time = 0
-        self.current_level = 1
+        self.current_level = 2
+        self.customer_times = [5,25,40,70,85]
         self.times_used = []
         self.new_ticket_position = None
 
@@ -93,9 +96,15 @@ class InstructionsEngine(GameEngine):
         self.dragged_ticket = None
         self.dragged_ticket_initial_position = None
         self.dragged_ticket_position = None
+        self.dragged_cola_initial_position = None
+        self.dragged_name_initial_position = None
         self.dragging = False
 
         self.loaded = False
+
+        self.draw_cola = [False, False, False]
+        self.cola_pictures = [None, None, None]
+
 
         self.score = 0
         self.score_to_complete = 400
@@ -163,7 +172,6 @@ class InstructionsEngine(GameEngine):
         self.tomatoes.draw(drawSurface)
         self.cheeses.draw(drawSurface)
         self.lettuces.draw(drawSurface)
-        #pygame.draw.rect(drawSurface, (255,255,255),self.hotdogmeat_plate.rect)
         self.hotdogmeat_plate.draw(drawSurface)
         self.buns.draw(drawSurface)
         self.hotdogbun_plate.draw(drawSurface)
@@ -192,8 +200,54 @@ class InstructionsEngine(GameEngine):
         self.servingPlate1.draw(drawSurface)
         self.servingPlate2.draw(drawSurface)
         self.servingPlate3.draw(drawSurface)
-        self.index = 0
-    
+
+
+
+        image = self.cola_machine.colaMachineFSM.getStateImage(self.cola_machine.position)
+        image.draw(drawSurface)
+        
+        for plate in self.meal_images:
+            if plate is not None:
+                plate.draw(drawSurface)
+                    
+
+        for i in range(len(self.draw_cola)):
+            if self.draw_cola[i]:
+                if i == 0:
+                    position = self.serving_stations[i].centroid.x-10, self.serving_stations[i].centroid.y - 90
+                elif i in [1,2]:
+                    position = self.serving_stations[i].centroid.x-25, self.serving_stations[i].centroid.y - 80
+                cola =  Drawable(position, "food/cola.png")
+                cola.scale((100,100))
+                cola.stateType = 'cola'
+                self.cola_pictures[i] = cola
+        
+        for c in self.cola_pictures:
+            if c is not None:
+                c.draw(drawSurface)     
+
+
+        for customer in self.customer_queue:
+            index = self.customer_queue.index(customer)
+            if customer is not None:
+                customer.draw(drawSurface)
+                customerName = TextEntry((customer.timer_position[0]+10,customer.timer_position[1]+20), customer.name, "default10")
+                customerName.draw(drawSurface)
+            if customer is None:
+                if self.tickets[index] is not None:
+                    self.tickets[index] = None
+
+        for i in self.tickets:
+            if i is not None:
+                i.image.draw(drawSurface)
+
+        for i in range(len(self.tickets)):
+            if self.tickets[i] is not None:
+                customer = self.customers[i]
+                self.tickets[i].image.draw(drawSurface)
+                self.tickets[i].customerName.draw(drawSurface)
+                if 'cola' in self.tickets[i].ticketItems:
+                    self.tickets[i].cola.draw(drawSurface)   
 
         if self.spawned == True:
             if self.welcome is not None:
@@ -213,48 +267,52 @@ class InstructionsEngine(GameEngine):
             instruction_text1 = "Place the bun on one of the meal prep "
             instruction_text2 = "stations to the right to start"
             instruction_text3 = "building your meal."
-            instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255) )
-            instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
-            instruction3 = TextEntry((10, 65), instruction_text3, "default15", size = 15, color=(255,255,255))
+            instruction1 = TextEntry((10, 5), instruction_text1, "default15", size = 15, color=(255,255,255) )
+            instruction2 = TextEntry((10, 25), instruction_text2, "default15", size = 15, color=(255,255,255))
+            instruction3 = TextEntry((10, 45), instruction_text3, "default15", size = 15, color=(255,255,255))
             self.text = [instruction1, instruction2, instruction3]
 
         if self.placed_bun:
             instruction_text1 = "Now, click and pick up your hot dog"
             instruction_text2 = "and place it on the grill to cook."
-            instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
-            instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
+            instruction1 = TextEntry((10, 5), instruction_text1, "default15", size = 15, color=(255,255,255))
+            instruction2 = TextEntry((10, 25), instruction_text2, "default15", size = 15, color=(255,255,255))
             self.text = [instruction1, instruction2]
 
         if self.cooking:
             instruction_text1 = "Once the hot dog timer reaches the "
             instruction_text2 = "yellow stage, it is ready!"
-            instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
-            instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
-            self.text = [instruction1, instruction2]
+            instruction_text3 = "Don't leave it for too long or"
+            instruction_text4 = "it will burn."
+            instruction1 = TextEntry((10, 5), instruction_text1, "default15", size = 15, color=(255,255,255))
+            instruction2 = TextEntry((10, 25), instruction_text2, "default15", size = 15, color=(255,255,255))
+            instruction3 = TextEntry((10, 45), instruction_text3, "default15", size = 15, color=(255,255,255))
+            instruction4 = TextEntry((10, 65), instruction_text4, "default15", size = 15, color=(255,255,255))
+            self.text = [instruction1, instruction2, instruction3, instruction4]
         
         if self.done_cooking:
             instruction_text1 = "Pick up the hot dog and place it "
             instruction_text2 = "in the bun."
-            instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
-            instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
+            instruction1 = TextEntry((10, 5), instruction_text1, "default15", size = 15, color=(255,255,255))
+            instruction2 = TextEntry((10, 25), instruction_text2, "default15", size = 15, color=(255,255,255))
             self.text = [instruction1, instruction2]
 
         if self.burnt:
             instruction_text1 = "Oh no! The hot dog burned!"
             instruction_text2 = "Throw it away"
             instruction_text2 = "then cook a new one"
-            instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
-            instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
-            instruction3 = TextEntry((10, 65), instruction_text3, "default15", size = 15, color=(255,255,255))
+            instruction1 = TextEntry((10, 5), instruction_text1, "default15", size = 15, color=(255,255,255))
+            instruction2 = TextEntry((10, 25), instruction_text2, "default15", size = 15, color=(255,255,255))
+            instruction3 = TextEntry((10, 45), instruction_text3, "default15", size = 15, color=(255,255,255))
             self.text = [instruction1, instruction2, instruction3]
 
         if self.meal_finished:
             instruction_text1 = "Now that you have completed the meal,"
             instruction_text2 = "pick it up and place it on the"
             instruction_text3 = "plate in front of the customer."
-            instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
-            instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
-            instruction3 = TextEntry((10, 65), instruction_text3, "default15", size = 15, color=(255,255,255))
+            instruction1 = TextEntry((10, 5), instruction_text1, "default15", size = 15, color=(255,255,255))
+            instruction2 = TextEntry((10, 25), instruction_text2, "default15", size = 15, color=(255,255,255))
+            instruction3 = TextEntry((10, 45), instruction_text3, "default15", size = 15, color=(255,255,255))
             self.text = [instruction1, instruction2, instruction3]
 
         if self.meal_served:
@@ -263,18 +321,18 @@ class InstructionsEngine(GameEngine):
             instruction_text1 = "In order to complete the meal, "
             instruction_text2 = "you must then drag the ticket "
             instruction_text3 = "over the completed meal."
-            instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
-            instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
-            instruction3 = TextEntry((10, 65), instruction_text3, "default15", size = 15, color=(255,255,255))
+            instruction1 = TextEntry((10, 5), instruction_text1, "default15", size = 15, color=(255,255,255))
+            instruction2 = TextEntry((10, 25), instruction_text2, "default15", size = 15, color=(255,255,255))
+            instruction3 = TextEntry((10, 45), instruction_text3, "default15", size = 15, color=(255,255,255))
             self.text = [instruction1, instruction2, instruction3]
 
         if self.ticket_dragged:
-            instruction_text1 = "Nice job! Now let's try it with a burger."
-            instruction_text2 = "First, pick up the burger bun"
+            instruction_text1 = "Nice job! Now let's try it with a"
+            instruction_text2 = "burger. First, pick up the burger bun"
             instruction_text3 = "and place on the prep station"
-            instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
-            instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
-            instruction3 = TextEntry((10, 65), instruction_text3, "default15", size = 15, color=(255,255,255))
+            instruction1 = TextEntry((10, 5), instruction_text1, "default15", size = 15, color=(255,255,255))
+            instruction2 = TextEntry((10, 25), instruction_text2, "default15", size = 15, color=(255,255,255))
+            instruction3 = TextEntry((10, 45), instruction_text3, "default15", size = 15, color=(255,255,255))
             self.text = [instruction1, instruction2, instruction3]
 
         #if self.veganBurger_bun:
@@ -287,56 +345,63 @@ class InstructionsEngine(GameEngine):
         if self.veganBurger_bun_placed:
             instruction_text1 = "Now, click and pick up your burger"
             instruction_text2 = "patty and place it on the grill to"
-            instruction_text3 = "cook. Pay attention to the type of patty."
-            instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
-            instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
-            instruction3 = TextEntry((10, 65), instruction_text3, "default15", size = 15, color=(255,255,255))
-            self.text = [instruction1, instruction2, instruction3]
+            instruction_text3 = "cook. Pay attention to the type "
+            instruction_text4 = "of patty."
+            instruction1 = TextEntry((10, 5), instruction_text1, "default15", size = 15, color=(255,255,255))
+            instruction2 = TextEntry((10, 25), instruction_text2, "default15", size = 15, color=(255,255,255))
+            instruction3 = TextEntry((10, 45), instruction_text3, "default15", size = 15, color=(255,255,255))
+            instruction4 = TextEntry((10, 65), instruction_text4, "default15", size = 15, color=(255,255,255))
+            self.text = [instruction1, instruction2, instruction3, instruction4]
 
         if self.veganBurger_meat_cooked:
             instruction_text1 = "The patty is done cooking."
             instruction_text2 = "Pick up and place in burger."
-            instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
-            instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
+            instruction1 = TextEntry((10, 5), instruction_text1, "default15", size = 15, color=(255,255,255))
+            instruction2 = TextEntry((10, 25), instruction_text2, "default15", size = 15, color=(255,255,255))
             self.text = [instruction1, instruction2]
 
         if self.veganBurger_meat_burnt:
             instruction_text1 = "Oh no! Your patty burned!"
             instruction_text2 = "Throw away patty in trash"
             instruction_text3 = "and cook another."
-            instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
-            instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
-            instruction3 = TextEntry((10, 65), instruction_text3, "default15", size = 15, color=(255,255,255))
+            instruction1 = TextEntry((10, 5), instruction_text1, "default15", size = 15, color=(255,255,255))
+            instruction2 = TextEntry((10, 25), instruction_text2, "default15", size = 15, color=(255,255,255))
+            instruction3 = TextEntry((10, 45), instruction_text3, "default15", size = 15, color=(255,255,255))
             self.text = [instruction1, instruction2, instruction3]
 
         if self.veganBurger_meal_finished:
             instruction_text1 = "Your burger is ready to be served"
             instruction_text2 = "Pick up and bring to customer's plate."
-            instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
-            instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
+            instruction1 = TextEntry((10, 5), instruction_text1, "default15", size = 15, color=(255,255,255))
+            instruction2 = TextEntry((10, 25), instruction_text2, "default15", size = 15, color=(255,255,255))
             self.text = [instruction1, instruction2]
         
         if self.veganBurger_meal_served:
             instruction_text1 = "Now drag the customer's ticket"
-            instruction_text2 = "over their meal to finish serving them."
-            instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
-            instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
-            self.text = [instruction1, instruction2]
+            instruction_text2 = "over their meal to finish "
+            instruction_text3 = "serving them."
+            instruction1 = TextEntry((10, 5), instruction_text1, "default15", size = 15, color=(255,255,255))
+            instruction2 = TextEntry((10, 25), instruction_text2, "default15", size = 15, color=(255,255,255))
+            instruction3 = TextEntry((10, 45), instruction_text3, "default15", size = 15, color=(255,255,255))
+            self.text = [instruction1, instruction2, instruction3]
 
         if self.veganBurger_ticket_dragged:
-            pass
+            instruction_text1 = "Great job! Now let's try it with more"
+            instruction_text2 = "toppings and a drink. Click on "
+            instruction_text3 = "the soda machine once a can is ready."
+            instruction_text4 = "A new one is ready every 10 seconds."
+            instruction1 = TextEntry((10, 5), instruction_text1, "default15", size = 15, color=(255,255,255))
+            instruction2 = TextEntry((10, 25), instruction_text2, "default15", size = 15, color=(255,255,255))
+            instruction3 = TextEntry((10, 45), instruction_text3, "default15", size = 15, color=(255,255,255))
+            instruction4 = TextEntry((10, 65), instruction_text4, "default15", size = 15, color=(255,255,255))
+            self.text = [instruction1, instruction2, instruction3, instruction4]
 
         if self.get_drink:
-            instruction_text1 = "First, notice this customer want a soda"
-            instruction_text2 = "click on the soda machine once a can is ready."
-            instruction_text3 = "A new one is ready every 10 seconds."
+            instruction_text1 = "The soda is brought directly to the"
+            instruction_text2 = "customer's plate."
             instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
             instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
-            instruction3 = TextEntry((10, 65), instruction_text3, "default15", size = 15, color=(255,255,255))
             self.text = [instruction1, instruction2]
-
-        if self.placed_drink:
-            pass
 
         if self.meatBurger_bun:
             instruction_text1 = "Now, pick up the burger bun"
@@ -346,51 +411,51 @@ class InstructionsEngine(GameEngine):
             self.text = [instruction1, instruction2]
 
         if self.meatBurger_bun_placed:
-            pass
-
-        if self.meatBurger_meat_pickup:
-            pass
+            instruction_text1 = "Great, now cook the patty on"
+            instruction_text2 = "the grill."
+            instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
+            instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
+            self.text = [instruction1, instruction2]
 
         if self.meatBurger_meat_cooking:
-            pass
+            instruction_text1 = "The toppings and meat (once cooked) can be placed"
+            instruction_text2 = "on the burger in any order."
+            instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
+            instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
+            self.text = [instruction1, instruction2]
 
         if self.meatBurger_meat_cooked:
-            pass
+            instruction_text1 = ""
+            instruction_text2 = ""
+            instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
+            instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
+            self.text = [instruction1, instruction2]
 
         if self.meatBurger_meat_burnt:
-            pass
+            instruction_text1 = "Oh no! Your patty burned!"
+            instruction_text2 = "Throw away patty in trash"
+            instruction_text3 = "and cook another."
+            instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
+            instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
+            instruction3 = TextEntry((10, 45), instruction_text3, "default15", size = 15, color=(255,255,255))
+            self.text = [instruction1, instruction2, instruction3]
 
         if self.meatBurger_meal_finished:
-            pass
+            instruction_text1 = "Now that the burger is completed,"
+            instruction_text2 = "bring it to the customer."
+            instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
+            instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
+            self.text = [instruction1, instruction2]
         
         if self.meatBurger_meal_served:
-            pass
-
-        if self.meatBurger_ticket_dragged:
-            pass
-
-
+            instruction_text1 = "In order to complete this last order,"
+            instruction_text2 = "drag the ticket over the meal."
+            instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
+            instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
+            self.text = [instruction1, instruction2]
 
         for text in self.text:
             text.draw(drawSurface)
-        
-        for plate in self.meal_images:
-            if plate is not None:
-                plate.draw(drawSurface)
-
-        for i in self.tickets:
-            if i is not None:
-                i.image.draw(drawSurface)
-                
-    
-
-        for customer in self.customer_queue:
-            if customer is not None:
-                customer.draw(drawSurface)
-            if customer is None:
-                index = self.customer_queue.index(customer)
-                if self.tickets[index] is not None:
-                    self.tickets[index] = None
             
 
     def handleEvent(self, event):
@@ -408,6 +473,8 @@ class InstructionsEngine(GameEngine):
             self.handle_serving_meal(new_position)
             #handle fulfilling ticket order
             self.handle_ticket_fulfillment_event(event, new_position)
+            #handle cola machine event
+            self.handle_cola_event(new_position)
         else:
             if event.type == pygame.MOUSEBUTTONUP or event.type == pygame.MOUSEMOTION or event.type == pygame.MOUSEBUTTONDOWN:
                 self.handle_ticket_fulfillment_event(event, event.pos)
@@ -417,7 +484,6 @@ class InstructionsEngine(GameEngine):
     def handle_foodlist_event(self, new_position):
         for i in self.foodList:
             if self.tickets[0] is not None:
-                print(self.tickets[0].ticketItems, i.item.stateType)
                 if (i.item.stateType in self.tickets[0].ticketItems and not (i.item.stateType == 'bun' and 'hot dog meal' in self.tickets[0].ticketItems)) or ('hot dog meal' in self.tickets[0].ticketItems and i.item.stateType == 'hot dog bun') or ('hot dog meal' in self.tickets[0].ticketItems and i.item.stateType == 'hot dog meat') or ('cooked ' + i.item.stateType in self.tickets[0].ticketItems) or i.item.stateType == 'trash':
                     if i.collide(new_position):
                         self.chef.move((i.position[0] + i.chefPos[0], i.position[1] + i.chefPos[1]))
@@ -477,6 +543,8 @@ class InstructionsEngine(GameEngine):
                                 self.meatBurger_bun_placed = True
                             elif itemType == 'cooked vegan patty':
                                 self.meal_finished = True
+                            elif (itemType == 'cooked meat patty' and ('lettuce' in x.burgerFSM.meal and 'cheese' in x.burgerFSM.meal)) or (itemType == 'cheese' and ('lettuce' in x.burgerFSM.meal and 'cooked meat patty' in x.burgerFSM.meal)) or (itemType == 'lettuce' and ('cooked meat patty' in x.burgerFSM.meal and 'cheese' in x.burgerFSM.meal)):
+                                self.meatBurger_meal_finished = True
                             x.burgerFSM.updateBurger(itemType)
                             index = self.mealPrepStations.index(x)
                             self.burger_images[index] = x.burgerFSM.getStateImage((x.centroid[0]-35, x.centroid[1]-42))
@@ -520,6 +588,8 @@ class InstructionsEngine(GameEngine):
                             self.current_patty_offset = self.chef.item.offset
                             self.patty_image = y.pattyFSM.getStateImage((y.centroid[0]-20, y.centroid[1]-10), self.current_patty_offset)
                             self.chef.dropOff()
+                            if itemType == 'meat patty':
+                                self.meatBurger_meat_cooking = True
                             y.pattyOn = True
                             self.timer = 0
                         elif itemType == 'hot dog meat' and not (y.isHotDogOn() or y.isPattyOn()):
@@ -581,6 +651,11 @@ class InstructionsEngine(GameEngine):
                                         self.meals[a] = item
                                 w.mealFSM.updateMeal(item)
                                 w.meal = w.mealFSM.getMeal()
+                                print(w.meal)
+                                if 'bun' in w.meal and 'cooked vegan patty' in w.meal:
+                                    self.veganBurger_meal_served = True
+                                if 'bun' in w.meal and 'cooked meat patty' in w.meal and 'lettuce' in w.meal and 'cheese' in w.meal:
+                                    self.meatBurger_meal_served = True
                             elif itemType == 'hot dog meal':
                                 item = self.chef.item
                                 self.chef.dropOff()
@@ -599,29 +674,59 @@ class InstructionsEngine(GameEngine):
                                         self.meals[a] = item
                                 w.mealFSM.updateMeal(item)
                                 w.meal = w.mealFSM.getMeal()
+                            elif itemType == 'cola' and 'cola' not in w.mealFSM.meal:
+                                item = self.chef.item
+                                w.meal = w.mealFSM.getMeal()
+                                w.mealFSM.meal.append(item.stateType)
+                                self.draw_cola[a] = True
+                                self.chef.dropOff()
+                                self.meatBurger_bun = True
                     elif not self.chef.isHoldingItem() and self.meals[a] is not None:
-                        self.chef.pickUp(self.meals[a])
-                        self.meal_images[a] = None
-                        self.meals[a] = None
-                        w.mealFSM.reset()
+                        if self.meals[a] is not None:
+                            self.chef.pickUp(self.meals[a])
+                            self.meal_images[a] = None
+                            self.meals[a] = None
+                            w.mealFSM.reset()
+                        elif self.draw_cola[a] and w.mealFSM.meal == ['cola']:
+                            self.chef.pickUp(self.cola_machine.item)
+                            self.serving_stations[a].meal = []
+                            w.mealFSM.meal = []
+                            self.cola_pictures[a] = None
+                            self.draw_cola[a] = False
+
 
     def handle_ticket_fulfillment_event(self, event, new_position):
         event_type = event.type
         if event_type == pygame.MOUSEBUTTONDOWN:
-            for ticket in self.tickets:
+            for i in range(len(self.tickets)):
+                ticket = self.tickets[i]
                 if ticket is not None:
                     if ticket.image.rect.collidepoint(new_position):
                         # Start dragging the ticket
                         self.dragged_ticket_initial_position = ticket.image.position
                         self.dragged_ticketRect_initial_position = (ticket.image.rect.left, ticket.image.rect.top)
+                        self.dragged_cola_initial_position = ticket.cola.position
+                        self.dragged_name_initial_position = ticket.customerName.position
+                        ticket.dragging = True
+                        cola = ticket.cola
+                        cola.position = (ticket.image.position[0]+45,ticket.image.position[1]-10)
+                        customerName = ticket.customerName
+                        customerName.position = (ticket.image.position[0]+10,ticket.image.position[1]+25)
+                        ticket.name = self.customers[i].name
                         ticket.dragging = True
         if event_type == pygame.MOUSEMOTION:
             # Update the position of the dragged ticket
-            for ticket in self.tickets:
+            for i in range(len(self.tickets)):
+                ticket = self.tickets[i]
                 if ticket is not None:
                     if ticket.dragging:
                         ticket.image.position = new_position[0]-50, new_position[1]-50
                         ticket.updateRectPosition((new_position[0]-50, new_position[1]-50))
+                        cola = ticket.cola
+                        cola.position = (ticket.image.position[0]+45,ticket.image.position[1]-10)
+                        customerName = ticket.customerName
+                        customerName.position = (ticket.image.position[0]+10,ticket.image.position[1]+25)
+                        ticket.name = self.customers[i].name
         elif event_type == pygame.MOUSEBUTTONUP:
             for ticket in self.tickets:
                 if ticket is not None:
@@ -629,26 +734,48 @@ class InstructionsEngine(GameEngine):
                         # Check if the dragged ticket is dropped onto a serving station
                         for serving_station in self.serving_stations:
                             if serving_station.rectangles_collide(ticket.image.rect) or serving_station.collide(new_position):
-                                if sorted(serving_station.meal) == sorted(ticket.ticketItems):
-                                    # Fulfill the order by updating the meal FSM to the serve state
-                                    serving_station.mealFSM.updateMeal(ticket)
-                                    serving_station.mealFSM.reset()
-                                    print(serving_station.mealFSM.meal)
-                                    station_index = self.serving_stations.index(serving_station)
-                                    self.meal_images[station_index] = serving_station.mealFSM.getStateImage(None, serving_station.mealFSM.position)
-                                    serving_station.meal = serving_station.mealFSM.getMeal()
-                                    self.ticket_dragged = True
-                                    # Clear the ticket
-                                    index = self.tickets.index(ticket)
-                                    self.tickets[index] = None
-                                    self.customer_queue[index].order.filled = True
-                                    self.score += 400
-                                    self.customers_served.append(serving_station.customer)
-                                    self.current_time = self.gameTime
+                                if serving_station.customer is not None:
+                                    if sorted(serving_station.meal) == sorted(ticket.ticketItems) and serving_station.customer.name == ticket.name:
+                                        # Fulfill the order by updating the meal FSM to the serve state
+                                        serving_station.mealFSM.updateMeal(ticket)
+                                        serving_station.mealFSM.reset()
+                                        station_index = self.serving_stations.index(serving_station)
+                                        self.meal_images[station_index] = serving_station.mealFSM.getStateImage(None, serving_station.mealFSM.position)
+                                        serving_station.meal = serving_station.mealFSM.getMeal()
+                                        self.ticket_dragged = True
+                                        if 'cooked vegan patty' in ticket.ticketItems:
+                                            self.veganBurger_ticket_dragged = True
+                                        if 'cooked meat patty' in ticket.ticketItems:
+                                            self.meatBurger_ticket_dragged = True
+                                        # Clear the ticket
+                                        index = self.tickets.index(ticket)
+                                        self.tickets[index] = None
+                                        self.customer_queue[index].order.filled = True
+                                        self.score += serving_station.customer.getScore()
+                                        self.customers_served.append(serving_station.customer)
+                                        self.current_time = self.gameTime
+                                        self.draw_cola[station_index] = False
+                                        self.cola_pictures[station_index] = None
                                 
                         ticket.image.position = self.dragged_ticket_initial_position
                         ticket.updateRectPosition(self.dragged_ticketRect_initial_position)
+                        ticket.cola.position = self.dragged_cola_initial_position
+                        ticket.customerName.position = self.dragged_name_initial_position
                         ticket.dragging = False
+
+    def handle_cola_event(self, new_position):
+        if self.cola_machine.collide(new_position):
+            self.chef.move(self.cola_machine.chefPos)
+        direction = np.array(self.chef.position) - self.cola_machine.chefPos
+        distance = np.linalg.norm(direction)
+        if distance < 5:
+            if self.cola_machine.collide(new_position):
+                if not self.chef.isHoldingItem():
+                    if self.cola_machine.colaMachineFSM.current_state_value in ['one_can', 'two_cans', 'three_cans']:
+                        self.chef.pickUp(self.cola_machine.item)
+                        self.cola_machine.time -= 10
+                        self.cola_machine.colaMachineFSM.takeCan()
+                        self.get_drink = True
 
 
     def get_unused_ticket_position(self):
@@ -672,23 +799,49 @@ class InstructionsEngine(GameEngine):
         if len(self.customers_done) >= self.customers_to_serve:
             self.gameOver = True
         self.gameTime += seconds
+        self.cola_machine.time += seconds        
         self.customer_queue = self.customerManager.get_queue()
         self.customers_done = self.customerManager.get_customers_done()
         for x in self.customer_queue:
             if x is not None:
+                x.decreasePatience(seconds)
                 x.update(seconds)
+        for y in self.mealPrepStations:
+            if 'bun' in y.burgerFSM.meal and 'cooked vegan patty' in y.burgerFSM.meal:
+                self.veganBurger_meal_finished = True
         self.chef.update(seconds)
         Drawable.updateOffset(self.chef, self.size)
         if self.chef.isHoldingItem() and (self.chef.item.getStateType() == 'cooked meat patty' or self.chef.item.getStateType() == 'cooked meat patty'):
             self.patty_image = None
         if self.is_time_to_spawn_customer():
-            self.spawn_customer()
+            freeStation = False
+            for i in self.serving_stations:
+                if i.customer == None:
+                    freeStation = True
+            if freeStation == True:
+                self.spawn_customer()
+            elif freeStation == False:
+                self.customers_next.append(self.spawn_customer())
+        if len(self.customers_next) >= 1:
+            freeStation = False
+            for i in self.serving_stations:
+                if i.customer == None:
+                    freeStation = True
+            if freeStation == True:
+                self.spawn_customer(self.customers_next[0])
+                self.customers_next.remove(self.customers_next[0])
         # Update the cooking process
         self.update_cooking(seconds)
         # Update the meal prep stations
         self.update_meal_prep_stations()       
         self.customerManager.update_timer(seconds)
         self.customerManager.update_queue(seconds)
+        if self.cola_machine.time //10 == 1 and self.cola_machine.colaMachineFSM.current_state_value == 'empty':
+            self.cola_machine.colaMachineFSM.update_machine()
+        if self.cola_machine.time //10 == 2 and self.cola_machine.colaMachineFSM.current_state_value == 'one_can':
+            self.cola_machine.colaMachineFSM.update_machine()
+        if self.cola_machine.time //10 >= 3 and self.cola_machine.colaMachineFSM.current_state_value in ['two_cans', 'three_cans']:
+            self.cola_machine.colaMachineFSM.update_machine()
 
 
 

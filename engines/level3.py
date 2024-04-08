@@ -103,10 +103,10 @@ class GameEngine3(GameEngine):
         self.loaded = False
 
         self.score = 0
-        self.score_to_complete = 700
+        self.score_to_complete = 900
         self.customers_served = []
         self.customers_done = []
-        self.customers_to_serve = 5
+        self.customers_to_serve = 7
         self.gameOver = False
         self.customers_next = []
 
@@ -168,8 +168,10 @@ class GameEngine3(GameEngine):
 
         self.menu_instructions = TextEntry((5,5), "Press m to return to main menu", "default10")
         self.menu_instructions.draw(drawSurface)
-        self.score_display = TextEntry((5,25), "Score: " + self.getScore(), "default15")
+        self.score_display = TextEntry((5,25), "Score: " + self.getScore() + "/1000", "default15")
         self.score_display.draw(drawSurface)
+        self.customer_display = TextEntry((5,45), "Customers Remaining: " + str(self.customers_to_serve - self.customers_spawned), "default15")
+        self.customer_display.draw(drawSurface)
 
         image = self.cola_machine.colaMachineFSM.getStateImage(self.cola_machine.position)
         image.draw(drawSurface)
@@ -556,11 +558,11 @@ class GameEngine3(GameEngine):
         self.update_meal_prep_stations()       
         self.customerManager.update_timer(seconds)
         self.customerManager.update_queue(seconds)
-        if self.cola_machine.time //10 == 1 and self.cola_machine.colaMachineFSM.current_state_value == 'empty':
+        if self.cola_machine.time //15 == 1 and self.cola_machine.colaMachineFSM.current_state_value == 'empty':
             self.cola_machine.colaMachineFSM.update_machine()
-        if self.cola_machine.time //10 == 2 and self.cola_machine.colaMachineFSM.current_state_value == 'one_can':
+        if self.cola_machine.time //15 == 2 and self.cola_machine.colaMachineFSM.current_state_value == 'one_can':
             self.cola_machine.colaMachineFSM.update_machine()
-        if self.cola_machine.time //10 >= 3 and self.cola_machine.colaMachineFSM.current_state_value in ['two_cans', 'three_cans']:
+        if self.cola_machine.time //15 >= 3 and self.cola_machine.colaMachineFSM.current_state_value in ['two_cans', 'three_cans']:
             self.cola_machine.colaMachineFSM.update_machine()
 
 

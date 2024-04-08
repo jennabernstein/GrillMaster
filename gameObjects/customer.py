@@ -16,7 +16,7 @@ class Customer(Drawable):
         elif name in ["Ben", "Eli", "Will", "Alex", "Lucas", "Will"]:
             image = "customer2.png"
         super().__init__((500, 500), image, offset=(0,0), scale=1)
-        self.patience = 40  # Initial patience level (adjust as needed)
+        self.patience = 30
         self.preferred_dish = None
         self.order = Ticket(name)
         self.current_patience = 0

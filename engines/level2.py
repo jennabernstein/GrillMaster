@@ -83,7 +83,7 @@ class GameEngine2(GameEngine):
         self.customer_spawn_interval = 10  
         self.last_order_fulfilled_time = 0
         self.current_level = 2
-        self.customer_times = [5,25,40,70,85]
+        self.customer_times = [3,25,40,70,85]
         self.times_used = []
         self.new_ticket_position = None
 
@@ -107,6 +107,7 @@ class GameEngine2(GameEngine):
         self.customers_served = []
         self.customers_done = []
         self.customers_to_serve = 5
+        self.customers_spawned = 0
         self.gameOver = False
         self.customers_next = []
 
@@ -168,8 +169,10 @@ class GameEngine2(GameEngine):
 
         self.menu_instructions = TextEntry((5,5), "Press m to return to main menu", "default10")
         self.menu_instructions.draw(drawSurface)
-        self.score_display = TextEntry((5,25), "Score: " + self.getScore(), "default15")
+        self.score_display = TextEntry((5,25), "Score: " + self.getScore() + "/700", "default15")
         self.score_display.draw(drawSurface)
+        self.customer_display = TextEntry((5,45), "Customers Remaining: " + str(self.customers_to_serve - self.customers_spawned), "default15")
+        self.customer_display.draw(drawSurface)
 
         image = self.cola_machine.colaMachineFSM.getStateImage(self.cola_machine.position)
         image.draw(drawSurface)
@@ -252,6 +255,7 @@ class GameEngine2(GameEngine):
                     if i == self.trash:
                         self.trash.open_can()
                         self.chef.dropOff()
+                        self.score -= 50
                     else:
                         self.trash.close_can()
                         self.chef.pickUp(i.item)
@@ -510,7 +514,7 @@ class GameEngine2(GameEngine):
         return next(iter(unused_positions), None)
     
     def getGameOver(self):
-        return self.gameOver
+        return ([self.gameOver, self.score, self.score_to_complete])
     
     def passed(self):
         if self.score >= self.score_to_complete:
@@ -519,8 +523,6 @@ class GameEngine2(GameEngine):
             return False
 
     def update(self, seconds):
-        if len(self.customers_done) >= self.customers_to_serve:
-            self.gameOver = True
         self.gameTime += seconds
         self.cola_machine.time += seconds        
         self.customer_queue = self.customerManager.get_queue()
@@ -556,12 +558,14 @@ class GameEngine2(GameEngine):
         self.update_meal_prep_stations()       
         self.customerManager.update_timer(seconds)
         self.customerManager.update_queue(seconds)
-        if self.cola_machine.time //10 == 1 and self.cola_machine.colaMachineFSM.current_state_value == 'empty':
+        if self.cola_machine.time //15 == 1 and self.cola_machine.colaMachineFSM.current_state_value == 'empty':
             self.cola_machine.colaMachineFSM.update_machine()
-        if self.cola_machine.time //10 == 2 and self.cola_machine.colaMachineFSM.current_state_value == 'one_can':
+        if self.cola_machine.time //15 == 2 and self.cola_machine.colaMachineFSM.current_state_value == 'one_can':
             self.cola_machine.colaMachineFSM.update_machine()
-        if self.cola_machine.time //10 >= 3 and self.cola_machine.colaMachineFSM.current_state_value in ['two_cans', 'three_cans']:
+        if self.cola_machine.time //15 >= 3 and self.cola_machine.colaMachineFSM.current_state_value in ['two_cans', 'three_cans']:
             self.cola_machine.colaMachineFSM.update_machine()
+        if len(self.customers_done) >= self.customers_to_serve:
+            self.gameOver = True
 
 
 
@@ -606,6 +610,7 @@ class GameEngine2(GameEngine):
 
 
     def spawn_customer(self, new_customer=None):
+        self.customers_spawned += 1
         if new_customer is None:
             new_customer = self.customerManager.add_person()
         else:

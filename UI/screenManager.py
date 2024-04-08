@@ -30,19 +30,18 @@ class ScreenManager(object):
         
         # Initializing other menus
         self.completedLevelMenu = EventMenu("kitchen background.png", fontName="default")
-        self.completedLevelMenu.addText("Level Passed!", RESOLUTION // 2 - vec(50,50), 100, center="both")
-        self.completedLevelMenu.addOption("return", "Press m to return to the main menu", 
+        self.completedLevelMenu.addText("Level Passed!", RESOLUTION // 2 - vec(175,100), 100, center="both")
+        self.completedLevelMenu.addOption("return", "Press m to return to main menu", 
                                         RESOLUTION // 2, lambda x: x.type == KEYDOWN and x.key == K_m,
                                         center="both", color=(0,0,0))
-        self.completedLevelMenu.addText("Score: " + self.game.getScore(), RESOLUTION // 2 + vec(-50,100), 100, center="both")
+        
 
         self.levelOverMenu = EventMenu("kitchen background.png", fontName="default")
-        self.levelOverMenu.addText("Level Failed!", RESOLUTION // 2 - vec(50,50), 100, center="both")
-        self.levelOverMenu.addOption("return", "Press m to return to the main menu", 
+        self.levelOverMenu.addText("Level Failed!", RESOLUTION // 2 - vec(175,100), 100, center="both")
+        self.levelOverMenu.addOption("return", "Press m to return to main menu", 
                                     RESOLUTION // 2, lambda x: x.type == KEYDOWN and x.key == K_m,
                                     center="both", color=(0,0,0))
-        self.levelOverMenu.addText("Score: " + self.game.getScore(), RESOLUTION // 2 + vec(-50,100), 100, center="both")
-
+        
         self.gameStarted = False
     
     def draw(self, drawSurf):
@@ -51,11 +50,14 @@ class ScreenManager(object):
 
         elif self.state == "mainMenu":
             self.mainMenu.draw(drawSurf)
-        if self.game.getGameOver():
+        if self.game.getGameOver()[0]:
             if self.state == "passedMenu":
+                self.completedLevelMenu.addText("Score: " + str(self.game.getGameOver()[1]) + "/" + str(self.game.getGameOver()[2]), RESOLUTION // 2 - vec(200,50), 100, center="both")
                 self.completedLevelMenu.draw(drawSurf)
             elif self.state == "failedMenu":
+                self.levelOverMenu.addText("Score: " + str(self.game.getGameOver()[1]) + "/" + str(self.game.getGameOver()[2]), RESOLUTION // 2 - vec(200,50), 100, center="both")
                 self.levelOverMenu.draw(drawSurf)
+
 
     def handleEvent(self, event):
         if self.state in ["instructions", "level1", "level2"]:
@@ -90,7 +92,7 @@ class ScreenManager(object):
     
     def update(self, seconds):  
         self.game = self.threadedGame.getGameEngine(self.instructions)
-        if self.game.getGameOver():
+        if self.game.getGameOver()[0]:
             if self.game.passed() and self.state != "mainMenu":  # Check if not already in passedMenu state
                 self.threadedGame.levelProgress.completeLevel(self.current_level)
                 self.current_level = self.threadedGame.levelProgress.current_state_value
