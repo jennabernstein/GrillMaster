@@ -161,7 +161,8 @@ class InstructionsEngine(GameEngine):
     
     
 
-    def draw(self, drawSurface):        
+    def draw(self, drawSurface):  
+        #draw background and ingredients     
         self.background.draw(drawSurface)
         self.longPinkCounter.draw(drawSurface)
         self.trash.draw(drawSurface)
@@ -206,17 +207,15 @@ class InstructionsEngine(GameEngine):
         self.servingPlate2.draw(drawSurface)
         self.servingPlate3.draw(drawSurface)
         
-
-
-
         image = self.cola_machine.colaMachineFSM.getStateImage(self.cola_machine.position)
         image.draw(drawSurface)
         
+
         for plate in self.meal_images:
             if plate is not None:
                 plate.draw(drawSurface)
                     
-
+        # make cola drawable if needed
         for i in range(len(self.draw_cola)):
             if self.draw_cola[i]:
                 if i == 0:
@@ -228,11 +227,12 @@ class InstructionsEngine(GameEngine):
                 cola.stateType = 'cola'
                 self.cola_pictures[i] = cola
         
+        # draw cola on station
         for c in self.cola_pictures:
             if c is not None:
                 c.draw(drawSurface)     
 
-
+        # draw customer with name
         for customer in self.customer_queue:
             index = self.customer_queue.index(customer)
             if customer is not None:
@@ -243,10 +243,11 @@ class InstructionsEngine(GameEngine):
                 if self.tickets[index] is not None:
                     self.tickets[index] = None
 
-        for i in self.tickets:
-            if i is not None:
-                i.image.draw(drawSurface)
+        #for i in self.tickets:
+        #    if i is not None:
+        #        i.image.draw(drawSurface)
 
+        # draw tickets with customer name, and cola if necessary
         for i in range(len(self.tickets)):
             if self.tickets[i] is not None:
                 customer = self.customers[i]
@@ -255,6 +256,7 @@ class InstructionsEngine(GameEngine):
                 if 'cola' in self.tickets[i].ticketItems:
                     self.tickets[i].cola.draw(drawSurface)   
 
+        #instructions to be displayed
         if self.spawned == True:
             if self.welcome is not None:
                 self.welcome.draw(drawSurface)
@@ -279,6 +281,7 @@ class InstructionsEngine(GameEngine):
             self.text = [instruction1, instruction2, instruction3]
 
         if self.placed_bun:
+            self.welcome = None
             instruction_text1 = "Now, click and pick up your hot dog"
             instruction_text2 = "and place it on the grill to cook."
             instruction1 = TextEntry((10, 5), instruction_text1, "default15", size = 15, color=(255,255,255))
@@ -286,6 +289,7 @@ class InstructionsEngine(GameEngine):
             self.text = [instruction1, instruction2]
 
         if self.cooking:
+            self.welcome = None
             instruction_text1 = "Once the hot dog timer reaches the "
             instruction_text2 = "yellow stage, it is ready!"
             instruction_text3 = "Don't leave it for too long or"
@@ -340,13 +344,6 @@ class InstructionsEngine(GameEngine):
             instruction2 = TextEntry((10, 25), instruction_text2, "default15", size = 15, color=(255,255,255))
             instruction3 = TextEntry((10, 45), instruction_text3, "default15", size = 15, color=(255,255,255))
             self.text = [instruction1, instruction2, instruction3]
-
-        #if self.veganBurger_bun:
-            #instruction_text1 = "First, pick up the burger bun"
-            #instruction_text2 = "and place on the prep station"
-            #instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
-            #instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
-            #self.text = [instruction1, instruction2]
 
         if self.veganBurger_bun_placed:
             instruction_text1 = "Now, click and pick up your burger"
@@ -433,9 +430,9 @@ class InstructionsEngine(GameEngine):
             self.text = [instruction1, instruction2]
 
         if self.meatBurger_meat_cooked:
-            instruction_text1 = "The patty is cooked and ready"
-            instruction_text2 = "to be placed in the burger."
-            instruction_text2 = "Ensure you include your toppings as well."
+            instruction_text1 = "The patty is cooked and ready to"
+            instruction_text2 = "be placed in the burger. Ensure"
+            instruction_text2 = "you include your toppings as well."
             instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
             instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
             self.text = [instruction1, instruction2]
@@ -463,10 +460,10 @@ class InstructionsEngine(GameEngine):
             instruction2 = TextEntry((10, 25), instruction_text2, "default15", size = 15, color=(255,255,255))
             self.text = [instruction1, instruction2]
 
+        # draw the instruction text
         for text in self.text:
             text.draw(drawSurface)
             
-
     def handleEvent(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             new_position = event.pos
@@ -486,25 +483,33 @@ class InstructionsEngine(GameEngine):
             self.handle_cola_event(new_position)
         else:
             if event.type == pygame.MOUSEBUTTONUP or event.type == pygame.MOUSEMOTION or event.type == pygame.MOUSEBUTTONDOWN:
+                # handle dragging and fulfilling the ticket
                 self.handle_ticket_fulfillment_event(event, event.pos)
              
         
 
     def handle_foodlist_event(self, new_position):
+        # for each item of food (and the trash can)
         for i in self.foodList:
+            # can only click on them if they are a part of the current meal being made
             if self.tickets[0] is not None:
                 if (i.item.stateType in self.tickets[0].ticketItems and not (i.item.stateType == 'bun' and 'hot dog meal' in self.tickets[0].ticketItems)) or ('hot dog meal' in self.tickets[0].ticketItems and i.item.stateType == 'hot dog bun') or ('hot dog meal' in self.tickets[0].ticketItems and i.item.stateType == 'hot dog meat') or ('cooked ' + i.item.stateType in self.tickets[0].ticketItems) or i.item.stateType == 'trash':
+                    # if item i was the one that was clicked on
                     if i.collide(new_position):
+                        # move chef to the position specified by the item
                         self.chef.move((i.position[0] + i.chefPos[0], i.position[1] + i.chefPos[1]))
                         if i != self.trash:
                             self.trash.close_can()
                         direction = np.array(self.chef.position) - (i.position[0] + i.chefPos[0], i.position[1] + i.chefPos[1])
                         distance = np.linalg.norm(direction)
+                        # can only complete pick up/drop off if within distance of 5
                         if distance < 5:
                             if i == self.trash:
+                                # throw away item
                                 self.trash.open_can()
                                 self.chef.dropOff()
                             else:
+                                # pick up item
                                 self.trash.close_can()
                                 self.chef.pickUp(i.item)
                                 if i.item.stateType == 'hot dog bun':
@@ -515,15 +520,19 @@ class InstructionsEngine(GameEngine):
                                     self.meatBurger_bun = True
 
     def handle_mealprepstation_event(self, new_position):
+        # for each meal prep station
         for x in self.mealPrepStations:
+            # if x was the clicked on station
             if x.collide(new_position):
+                # move chef to station
                 self.chef.move(x.chefPos)
 
             direction = np.array(self.chef.position) - x.chefPos
             distance = np.linalg.norm(direction)
-
+            # if not already holding an item and distance within 5
             if not self.chef.isHoldingItem() and x.collide(new_position):
                 if distance < 5:
+                    # if the burger is ready to be picked up (meaning it has a cooked patty on it)
                     if x.burgerFSM.is_burger_ready():
                         index = self.mealPrepStations.index(x)
                         self.chef.pickUp(self.burger_images[index])
@@ -531,6 +540,7 @@ class InstructionsEngine(GameEngine):
                         self.burger_meal = x.burgerFSM.meal
                         self.burger_images[index] = None
                         x.burgerFSM.reset()
+                    # if the hot dog is ready to be picked up (meaning it has a cooked hot dog on it)
                     if x.hotdogMealFSM.is_hotdog_ready():
                         index = self.mealPrepStations.index(x)
                         self.chef.pickUp(self.hotdog_images[index])
@@ -539,10 +549,11 @@ class InstructionsEngine(GameEngine):
                         self.hotdog_images[index] = None
                         x.hotdogMealFSM.reset()
 
-            
+            # if chef is holding an item (meaning they want to drop it off) and they're within a distance of 5
             elif self.chef.isHoldingItem() and x.collide(new_position):
                 if distance < 5:
                     itemType = self.chef.item.getStateType()
+                    # build meal based on what the chef was holding
                     if itemType not in x.burgerFSM.meal:
                         if (itemType == 'bun') or ((itemType == 'cooked meat patty' or itemType == 'cooked vegan patty') and 'bun' in x.burgerFSM.meal and ('cooked meat patty' not in x.burgerFSM.meal or 'cooked vegan patty' not in x.burgerFSM.meal)) or ((itemType == 'lettuce' or itemType == 'tomato' or itemType == 'cheese') and ('bun' in x.burgerFSM.meal)):
                             self.chef.dropOff()
@@ -557,6 +568,7 @@ class InstructionsEngine(GameEngine):
                             x.burgerFSM.updateBurger(itemType)
                             index = self.mealPrepStations.index(x)
                             self.burger_images[index] = x.burgerFSM.getStateImage((x.centroid[0]-35, x.centroid[1]-42))
+                        # if holding an already made burger
                         elif itemType.split()[0] == 'burger':
                             self.chef.dropOff()
                             x.burgerFSM.set_current_state(self.burger_state, self.burger_meal)
@@ -574,6 +586,7 @@ class InstructionsEngine(GameEngine):
                             x.hotdogMealFSM.updateHotDog(itemType)
                             index = self.mealPrepStations.index(x)
                             self.hotdog_images[index] = x.hotdogMealFSM.getStateImage((x.centroid[0]-35, x.centroid[1]-30))
+                        # if holding an already made hot dog
                         elif itemType == 'hot dog meal':
                             self.chef.dropOff()
                             x.hotdogMealFSM.set_current_state(self.hotdog_state, self.hotdog_meal)
@@ -583,6 +596,7 @@ class InstructionsEngine(GameEngine):
                             self.hotdog_images[index] = x.hotdogMealFSM.getStateImage((x.centroid[0]-35, x.centroid[1]-30))
 
     def handle_cookstation_event(self, new_position):
+        # for each cookstation (grill)
         for y in self.cookStations:
             if y.collide(new_position):
                 self.chef.move(y.chefPos)
@@ -591,6 +605,7 @@ class InstructionsEngine(GameEngine):
             if distance < 5:
                     if self.chef.isHoldingItem():
                         itemType = self.chef.item.getStateType()
+                        # if the chef is holding a patty, update the patty fsm
                         if (itemType == 'vegan patty' or itemType == 'meat patty') and not (y.isHotDogOn() or y.isPattyOn()):
                             if y not in self.currently_cooking:
                                 self.currently_cooking.append(y)
@@ -601,6 +616,7 @@ class InstructionsEngine(GameEngine):
                                 self.meatBurger_meat_cooking = True
                             y.pattyOn = True
                             self.timer = 0
+                        # if chef is holding a hot dog, update the hot dog fsm
                         elif itemType == 'hot dog meat' and not (y.isHotDogOn() or y.isPattyOn()):
                             if y not in self.currently_cooking:
                                 self.currently_cooking.append(y)
@@ -612,18 +628,21 @@ class InstructionsEngine(GameEngine):
 
 
     def handle_cooking(self, new_position):
+        # for each cookstation that is currently_cooking
         if len(self.currently_cooking) >= 1:
             for j in self.currently_cooking:
                 if j.collide(new_position):
                     direction = np.array(self.chef.position) - j.chefPos
                     distance = np.linalg.norm(direction)
                     if distance < 5:
+                        # if the patty is done cooking, chef can pick it up
                         if j.pattyFSM.is_done_cooking() and not self.chef.isHoldingItem():
                             self.chef.pickUp(self.patty_image)
                             j.pattyOn = False
                             self.currently_cooking.remove(j)
                             j.pattyFSM.reset()
                             self.patty_image = None
+                        # if hot dog is done cooking, chef can pick it up
                         if j.hotdogFSM.is_done_cooking() and not self.chef.isHoldingItem():
                             self.chef.pickUp(self.hotdog_image)
                             j.hotdogOn = False
@@ -633,6 +652,7 @@ class InstructionsEngine(GameEngine):
 
 
     def handle_serving_meal(self, new_position):
+        # for all the customer serving stations
         for a in range(len(self.serving_stations)):
             w = self.serving_stations[a]
             if w.collide(new_position):
@@ -643,6 +663,7 @@ class InstructionsEngine(GameEngine):
                 if w.collide(new_position):
                     if self.chef.isHoldingItem():
                             itemType = self.chef.item.getStateType()
+                            # if the chef is holding a burger or hot dog, then update the meal fsm and image on the serving station
                             if itemType.split()[0] == 'burger':
                                 item = self.chef.item
                                 self.chef.dropOff()
@@ -682,6 +703,7 @@ class InstructionsEngine(GameEngine):
                                         self.meals[a] = item
                                 w.mealFSM.updateMeal(item)
                                 w.meal = w.mealFSM.getMeal()
+                            # if item is a soda can, then add that to meal fsm
                             elif itemType == 'cola' and 'cola' not in w.mealFSM.meal:
                                 item = self.chef.item
                                 w.meal = w.mealFSM.getMeal()
@@ -689,12 +711,14 @@ class InstructionsEngine(GameEngine):
                                 self.draw_cola[a] = True
                                 self.chef.dropOff()
                                 self.meatBurger_bun = True
+                    # pick meal back up if chef isn't holding an item already, so that it can be moved to a different serving station or thrown in trash if needed
                     elif not self.chef.isHoldingItem() and self.meals[a] is not None:
                         if self.meals[a] is not None:
                             self.chef.pickUp(self.meals[a])
                             self.meal_images[a] = None
                             self.meals[a] = None
                             w.mealFSM.reset()
+                        # can only pick up the soda can if it is the only thing on the serving station
                         elif self.draw_cola[a] and w.mealFSM.meal == ['cola']:
                             self.chef.pickUp(self.cola_machine.item)
                             self.serving_stations[a].meal = []
@@ -705,6 +729,7 @@ class InstructionsEngine(GameEngine):
 
     def handle_ticket_fulfillment_event(self, event, new_position):
         event_type = event.type
+        # if clicking on the ticket
         if event_type == pygame.MOUSEBUTTONDOWN:
             for i in range(len(self.tickets)):
                 ticket = self.tickets[i]
@@ -743,6 +768,7 @@ class InstructionsEngine(GameEngine):
                         for serving_station in self.serving_stations:
                             if serving_station.rectangles_collide(ticket.image.rect) or serving_station.collide(new_position):
                                 if serving_station.customer is not None:
+                                    # check if meal and ticket items match and if customer name and ticket name match
                                     if sorted(serving_station.meal) == sorted(ticket.ticketItems) and serving_station.customer.name == ticket.name:
                                         # Fulfill the order by updating the meal FSM to the serve state
                                         serving_station.mealFSM.updateMeal(ticket)
@@ -768,7 +794,7 @@ class InstructionsEngine(GameEngine):
                                         self.current_time = self.gameTime
                                         self.draw_cola[station_index] = False
                                         self.cola_pictures[station_index] = None
-                                
+                        # reset positions if wrong meal or not overlapping with a meal
                         ticket.image.position = self.dragged_ticket_initial_position
                         ticket.updateRectPosition(self.dragged_ticketRect_initial_position)
                         ticket.cola.position = self.dragged_cola_initial_position
@@ -776,6 +802,7 @@ class InstructionsEngine(GameEngine):
                         ticket.dragging = False
 
     def handle_cola_event(self, new_position):
+        # update the cola machine fsm and image based on time
         if self.cola_machine.collide(new_position):
             self.chef.move(self.cola_machine.chefPos)
         direction = np.array(self.chef.position) - self.cola_machine.chefPos
@@ -791,19 +818,24 @@ class InstructionsEngine(GameEngine):
                             self.cola_machine.time = 15
                         elif self.cola_machine.colaMachineFSM.current_state_value == 'three_cans':
                             self.cola_machine.time = 30
+
+                        # pick up a can
                         self.cola_machine.colaMachineFSM.takeCan()
                         self.get_drink = True
 
 
     def get_unused_ticket_position(self):
+        # get the first ticket position that is unused
         positions = [self.ticket_position1, self.ticket_position2]
         unused_positions = set(positions) - self.used_positions
         return next(iter(unused_positions), None)
     
     def getGameOver(self):
+        # return if the game is over, the final score, and the score that was needed
         return ([self.gameOver, self.score, self.score_to_complete])
     
     def passed(self):
+        # return if they passed the level or not, based on their score
         if self.score >= self.score_to_complete:
             return True
         else:
@@ -813,22 +845,30 @@ class InstructionsEngine(GameEngine):
         return str(self.score)
 
     def update(self, seconds):
+        # check if game over
         if len(self.customers_done) >= self.customers_to_serve:
             self.gameOver = True
+        # update all the timers
         self.gameTime += seconds
-        self.cola_machine.time += seconds        
+        self.cola_machine.time += seconds  
+        # update customer queue      
         self.customer_queue = self.customerManager.get_queue()
         self.customers_done = self.customerManager.get_customers_done()
+        # send first customer in
         if self.gameTime >= 1 and not self.completed_tickets[0]:
             self.meal1_done = True
             self.completed_tickets[0] = True
-        for x in self.customer_queue:
-            if x is not None:
-                x.decreasePatience(seconds)
-                x.update(seconds)
+        
+        #for x in self.customer_queue:
+        #    if x is not None:
+        #        x.decreasePatience(seconds)
+        #        x.update(seconds)
+
         for y in self.mealPrepStations:
             if 'bun' in y.burgerFSM.meal and 'cooked vegan patty' in y.burgerFSM.meal:
                 self.veganBurger_meal_finished = True
+
+        # update chef sprite
         self.chef.update(seconds)
         Drawable.updateOffset(self.chef, self.size)
         if self.chef.isHoldingItem() and (self.chef.item.getStateType() == 'cooked meat patty' or self.chef.item.getStateType() == 'cooked meat patty'):
@@ -840,12 +880,15 @@ class InstructionsEngine(GameEngine):
         self.update_meal_prep_stations()       
         self.customerManager.update_timer(seconds)
         self.customerManager.update_queue(seconds)
+        # update cola machine fsm
         if self.cola_machine.time //15 == 1 and self.cola_machine.colaMachineFSM.current_state_value == 'empty':
             self.cola_machine.colaMachineFSM.update_machine()
         if self.cola_machine.time //15 == 2 and self.cola_machine.colaMachineFSM.current_state_value == 'one_can':
             self.cola_machine.colaMachineFSM.update_machine()
         if self.cola_machine.time //15 >= 3 and self.cola_machine.colaMachineFSM.current_state_value in ['two_cans', 'three_cans']:
             self.cola_machine.colaMachineFSM.update_machine()
+        
+        # update customers
         if self.is_time_to_spawn_customer():
             freeStation = False
             for i in self.serving_stations:
@@ -855,6 +898,7 @@ class InstructionsEngine(GameEngine):
                 self.spawn_customer()
             elif freeStation == False:
                 self.customers_next.append(self.spawn_customer())
+
         if len(self.customers_next) >= 1:
             freeStation = False
             for i in self.serving_stations:
@@ -867,6 +911,7 @@ class InstructionsEngine(GameEngine):
 
 
     def update_cooking(self, seconds):
+        # update the timer and the fsm for the hot dog or patty for cooking
         if len(self.currently_cooking) >= 1:
             self.timer += seconds
             for i in self.currently_cooking:
@@ -879,6 +924,7 @@ class InstructionsEngine(GameEngine):
 
 
     def update_meal_prep_stations(self):
+        # update image of the burger fsm on the meal prep station
         for j in self.mealPrepStations:
             if j.burgerFSM.meal != []:
                 index = self.mealPrepStations.index(j)
@@ -900,6 +946,7 @@ class InstructionsEngine(GameEngine):
             if 'cooked meat patty' in self.tickets[0].ticketItems:
                 self.meatBurger_meat_cooked = True
         elif percentage > 1.5:
+            # draw a red circle since it is burnt
             pygame.draw.circle(drawSurface, (255, 0, 0), position, radius)
             self.burnt = True
             if 'cooked vegan patty' in self.tickets[0].ticketItems:
@@ -909,11 +956,13 @@ class InstructionsEngine(GameEngine):
 
 
     def draw_arc(self, drawSurface, position, radius, percentage, color):
+        # draw the arc for the percentage left
         angle = 360 * percentage
         pygame.draw.arc(drawSurface, color, (position[0] - radius, position[1] - radius, 2 * radius, 2 * radius), math.radians(-90), math.radians(-90 + angle), width=6)
 
 
     def spawn_customer(self, new_customer=None):
+        # spawn customer based on a predetermined order for the tutorial
         index = 0
         if len(self.customers_done) == 0:
             index = 0
@@ -937,11 +986,11 @@ class InstructionsEngine(GameEngine):
         self.spawned = True
         return new_customer
     
-    
-
 
     def is_time_to_spawn_customer(self):
+        # spawn customer based on whether the last meal is already done
         if self.meal1_done:
+            # turn to false so it doesn't repeat
             self.meal1_done = False
             return True
         if self.meal2_done:
@@ -960,4 +1009,3 @@ class InstructionsEngine(GameEngine):
         self.customer_queue[index].order = None
         self.customer_queue[index].order.filled = True
         # if ticket is dragged to the order, then order is fulfilled
-        # check if ticket is same as what is given, then update mealFSM from burger to serve

@@ -77,7 +77,8 @@ class ScreenManager(object):
             else:
                 self.threadedGame.handleEvent(event)
         elif self.state == "mainMenu":
-            choice = self.mainMenu.handleEvent(event)            
+            choice = self.mainMenu.handleEvent(event)    
+            self.threadedGame.setNewGame(self.threadedGame.levelProgress.current_state_value)        
             if choice == "instructions":
                 self.instructions = True
                 self.threadedGame.setCurrentGame('instructions')

@@ -34,6 +34,7 @@ class ThreadedGameEngine():
         elif level == 'level2':
             self.games[2] = GameEngine3()
             self.game = self.games[2]
+        self.games[0] = InstructionsEngine()
 
     def update(self, seconds):
         if self.levelProgress.current_state_value == 'level1':
