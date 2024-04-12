@@ -11,9 +11,9 @@ class Customer(Drawable):
             image = "customer3.png"
         elif name in ["Liam", "Jake", "Clay", "Pete", "Sean", "Sam"]:
             image = "customer4.png"
-        elif name in ["Leo", "Noah", "Liam", "Oli", "Jay", "Jack"]:
+        elif name in ["Leo", "Noah", "Oli", "Jay", "Jack", "Steve"]:
             image = "customer1.png"
-        elif name in ["Ben", "Eli", "Will", "Alex", "Lucas", "Will"]:
+        elif name in ["Ben", "Eli", "Will", "Alex", "Lucas", "Jon"]:
             image = "customer2.png"
         super().__init__((500, 500), image, offset=(0,0), scale=1)
         self.patience = 30
@@ -64,7 +64,6 @@ class Customer(Drawable):
         else:
             score = 75
         score += int(self.get_patience_percentage() * 100)
-        print(self.get_patience_percentage())
         return score
     
     def is_unpatient(self):

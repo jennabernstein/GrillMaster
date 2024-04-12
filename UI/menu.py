@@ -72,6 +72,9 @@ class EventMenu(AbstractMenu):
             function = self.eventMap[key]
             if function(event):
                 return key
+    def clear(self):
+        self.options.clear()
+        self.additional_text.clear()
     
     
     

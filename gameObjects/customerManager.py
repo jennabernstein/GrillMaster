@@ -9,8 +9,8 @@ class CustomerManager():
         self.nextCustomers = []
         self.timer = 0
         self.usedName = []
-        self.names = ["Eva", "Ana", "Mia", "Ella", "Sofia", "Claire", "Liam", "Jake", "Clay", "Pete", "Sean", "Sam",
-                      "Leo", "Noah", "Liam", "Oli", "Jay", "Jack", "Ben", "Eli", "Will", "Alex", "Lucas", "Will"]
+        self.names = ["Eva", "Ana", "Mia", "Ella", "Sofia", "Claire", "Jake", "Clay", "Pete", "Sean", "Sam",
+                      "Leo", "Noah", "Liam", "Oli", "Jay", "Jack", "Ben", "Eli", "Will", "Alex", "Lucas", "Steve", "Jon"]
         self.stations = [None, None, None]
         self.customers_done = []
         self.level1spawn = False
@@ -55,7 +55,11 @@ class CustomerManager():
             if i is not None:
                 if i.needToMove():
                     i.update(seconds)
-                if i.isSatisfied() or i.is_unpatient():
+                if not (self.level == 0) and (i.isSatisfied() or i.is_unpatient()):
+                    self.customers_done.append(i)
+                    self.remove_person(i)
+                    self.level1spawn = True
+                elif self.level == 0 and i.isSatisfied():
                     self.customers_done.append(i)
                     self.remove_person(i)
                     self.level1spawn = True

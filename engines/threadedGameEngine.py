@@ -55,8 +55,7 @@ class ThreadedGameEngine():
         pass
 
     def gameOver(self):
-        if self.game is not None:
-            return self.game.gameOver
+        return self.game.getGameOver()
     
     def unpassGame(self):
         self.game.reset()

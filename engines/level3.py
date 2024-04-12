@@ -83,7 +83,7 @@ class GameEngine3(GameEngine):
         self.customer_spawn_interval = 10  
         self.last_order_fulfilled_time = 0
         self.current_level = 2
-        self.customer_times = [5,25,40,70,85]
+        self.customer_times = [3,25,40,70,85,100,110]
         self.times_used = []
         self.new_ticket_position = None
 
@@ -105,10 +105,12 @@ class GameEngine3(GameEngine):
         self.score = 0
         self.score_to_complete = 900
         self.customers_served = []
+        self.customers_spawned = 0
         self.customers_done = []
         self.customers_to_serve = 7
         self.gameOver = False
         self.customers_next = []
+        self.meals_done = []
 
         self.draw_cola = [False, False, False]
         self.cola_pictures = [None, None, None]
@@ -168,7 +170,7 @@ class GameEngine3(GameEngine):
 
         self.menu_instructions = TextEntry((5,5), "Press m to return to main menu", "default10")
         self.menu_instructions.draw(drawSurface)
-        self.score_display = TextEntry((5,25), "Score: " + self.getScore() + "/1000", "default15")
+        self.score_display = TextEntry((5,25), "Score: " + self.getScore() + "/900", "default15")
         self.score_display.draw(drawSurface)
         self.customer_display = TextEntry((5,45), "Customers Remaining: " + str(self.customers_to_serve - self.customers_spawned), "default15")
         self.customer_display.draw(drawSurface)
@@ -254,6 +256,7 @@ class GameEngine3(GameEngine):
                     if i == self.trash:
                         self.trash.open_can()
                         self.chef.dropOff()
+                        self.score -= 35
                     else:
                         self.trash.close_can()
                         self.chef.pickUp(i.item)
@@ -501,7 +504,12 @@ class GameEngine3(GameEngine):
                 if not self.chef.isHoldingItem():
                     if self.cola_machine.colaMachineFSM.current_state_value in ['one_can', 'two_cans', 'three_cans']:
                         self.chef.pickUp(self.cola_machine.item)
-                        self.cola_machine.time -= 10
+                        if self.cola_machine.colaMachineFSM.current_state_value == 'one_can':
+                            self.cola_machine.time = 0
+                        elif self.cola_machine.colaMachineFSM.current_state_value == 'two_cans':
+                            self.cola_machine.time = 15
+                        elif self.cola_machine.colaMachineFSM.current_state_value == 'three_cans':
+                            self.cola_machine.time = 30
                         self.cola_machine.colaMachineFSM.takeCan()
 
 
@@ -512,7 +520,7 @@ class GameEngine3(GameEngine):
         return next(iter(unused_positions), None)
     
     def getGameOver(self):
-        return self.gameOver
+        return ([self.gameOver, self.score, self.score_to_complete])
     
     def passed(self):
         if self.score >= self.score_to_complete:
@@ -608,23 +616,52 @@ class GameEngine3(GameEngine):
 
 
     def spawn_customer(self, new_customer=None):
+        self.customers_spawned += 1
         if new_customer is None:
             new_customer = self.customerManager.add_person()
         else:
             new_customer = new_customer
         if self.tickets[0] == None:
-            new_customer.order.generateOrder(self.ticket_position1)
+            new_customer.order.generateOrderLevel2(self.ticket_position1, self.meals_done)
             self.tickets[0] = new_customer.order
+            if 'cooked meat patty' in self.tickets[0].ticketItems or 'cooked vegan patty' in self.tickets[0].ticketItems:
+                HDorB = 'burger'
+            elif 'hot dog meal' in self.tickets[0].ticketItems:
+                HDorB = 'hot dog'
+            if 'cola' in self.tickets[0].ticketItems:
+                cola = 'True'
+            else:
+                cola = 'False'
+            self.meals_done.append([HDorB,cola])
             self.customers[0] = new_customer
         elif self.tickets[1] == None:
-            new_customer.order.generateOrder(self.ticket_position2)
+            new_customer.order.generateOrderLevel2(self.ticket_position2, self.meals_done)
             self.tickets[1] = new_customer.order
+            if 'cooked meat patty' in self.tickets[1].ticketItems or 'cooked vegan patty' in self.tickets[1].ticketItems:
+                HDorB = 'burger'
+            elif 'hot dog meal' in self.tickets[1].ticketItems:
+                HDorB = 'hot dog'
+            if 'cola' in self.tickets[1].ticketItems:
+                cola = 'True'
+            else:
+                cola = 'False'
+            self.meals_done.append([HDorB,cola])
             self.customers[1] = new_customer
         elif self.tickets[2] == None:
-            new_customer.order.generateOrder(self.ticket_position3)
+            new_customer.order.generateOrderLevel2(self.ticket_position3, self.meals_done)
             self.tickets[2] = new_customer.order
+            if 'cooked meat patty' in self.tickets[2].ticketItems or 'cooked vegan patty' in self.tickets[2].ticketItems:
+                HDorB = 'burger'
+            elif 'hot dog meal' in self.tickets[2].ticketItems:
+                HDorB = 'hot dog'
+            if 'cola' in self.tickets[2].ticketItems:
+                cola = 'True'
+            else:
+                cola = 'False'
+            self.meals_done.append([HDorB,cola])
             self.customers[2] = new_customer 
         return new_customer
+
 
 
     def is_time_to_spawn_customer(self):

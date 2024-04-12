@@ -4,11 +4,10 @@ from statemachine import State
 class LevelProgressFSM(AbstractGameFSM):
     level1 = State(initial=True)
     level2 = State()
-    complete = State()
 
     failedLevel = level1.to(level1) | level2.to(level2)
     completeLevel1 = level1.to(level2)
-    completeLevel2 = level2.to(complete)
+    completeLevel2 = level2.to(level2)
 
     def getLevelState(self):
         return self.current_state

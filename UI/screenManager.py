@@ -52,11 +52,22 @@ class ScreenManager(object):
             self.mainMenu.draw(drawSurf)
         if self.game.getGameOver()[0]:
             if self.state == "passedMenu":
+                self.completedLevelMenu.clear()  # Clear previous score
+                self.completedLevelMenu.addText("Level Passed!", RESOLUTION // 2 - vec(175,100), 100, center="both")
+                self.completedLevelMenu.addOption("return", "Press m to return to main menu", 
+                                                RESOLUTION // 2, lambda x: x.type == KEYDOWN and x.key == K_m,
+                                                center="both", color=(0,0,0))
                 self.completedLevelMenu.addText("Score: " + str(self.game.getGameOver()[1]) + "/" + str(self.game.getGameOver()[2]), RESOLUTION // 2 - vec(200,50), 100, center="both")
                 self.completedLevelMenu.draw(drawSurf)
             elif self.state == "failedMenu":
+                self.levelOverMenu.clear()  # Clear previous score
+                self.levelOverMenu.addText("Level Failed!", RESOLUTION // 2 - vec(175,100), 100, center="both")
+                self.levelOverMenu.addOption("return", "Press m to return to main menu", 
+                                            RESOLUTION // 2, lambda x: x.type == KEYDOWN and x.key == K_m,
+                                            center="both", color=(0,0,0))
                 self.levelOverMenu.addText("Score: " + str(self.game.getGameOver()[1]) + "/" + str(self.game.getGameOver()[2]), RESOLUTION // 2 - vec(200,50), 100, center="both")
                 self.levelOverMenu.draw(drawSurf)
+
 
 
     def handleEvent(self, event):
