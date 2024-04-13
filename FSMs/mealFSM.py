@@ -53,7 +53,6 @@ class MealFSM(AbstractGameFSM):
                     self.meal.append('lettuce')
                 if self.current_state.id == 'burger' and item.getStateType() == 'ticket':
                     self.reset()
-            print(self.meal)
 
             if self.current_state.id == 'plate':
                 if 'hot dog meal' == item.getStateType():

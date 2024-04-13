@@ -312,7 +312,7 @@ class InstructionsEngine(GameEngine):
         if self.burnt:
             instruction_text1 = "Oh no! The hot dog burned!"
             instruction_text2 = "Throw it away"
-            instruction_text2 = "then cook a new one"
+            instruction_text2 = "then cook a new one."
             instruction1 = TextEntry((10, 5), instruction_text1, "default15", size = 15, color=(255,255,255))
             instruction2 = TextEntry((10, 25), instruction_text2, "default15", size = 15, color=(255,255,255))
             instruction3 = TextEntry((10, 45), instruction_text3, "default15", size = 15, color=(255,255,255))
@@ -410,7 +410,7 @@ class InstructionsEngine(GameEngine):
 
         if self.meatBurger_bun:
             instruction_text1 = "Now, pick up the burger bun"
-            instruction_text2 = "and place on the prep station"
+            instruction_text2 = "and place on the prep station."
             instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
             instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
             self.text = [instruction1, instruction2]
@@ -424,20 +424,21 @@ class InstructionsEngine(GameEngine):
 
         if self.meatBurger_meat_cooking:
             instruction_text1 = "The toppings and meat (once cooked)" 
-            instruction_text2 = "can be placed on the"
-            instruction_text3 = "burger in any order."
+            instruction_text2 = "can be placed on the burger"
+            instruction_text3 = "in any order."
             instruction1 = TextEntry((10, 5), instruction_text1, "default15", size = 15, color=(255,255,255))
             instruction2 = TextEntry((10, 25), instruction_text2, "default15", size = 15, color=(255,255,255))
             instruction3 = TextEntry((10, 45), instruction_text3, "default15", size = 15, color=(255,255,255))
-            self.text = [instruction1, instruction2]
+            self.text = [instruction1, instruction2, instruction3]
 
         if self.meatBurger_meat_cooked:
             instruction_text1 = "The patty is cooked and ready to"
             instruction_text2 = "be placed in the burger. Ensure"
-            instruction_text2 = "you include your toppings as well."
+            instruction_text3 = "you include your toppings as well."
             instruction1 = TextEntry((10, 25), instruction_text1, "default15", size = 15, color=(255,255,255))
             instruction2 = TextEntry((10, 45), instruction_text2, "default15", size = 15, color=(255,255,255))
-            self.text = [instruction1, instruction2]
+            instruction3 = TextEntry((10, 45), instruction_text3, "default15", size = 15, color=(255,255,255))
+            self.text = [instruction1, instruction2, instruction3]
 
         if self.meatBurger_meat_burnt:
             instruction_text1 = "Oh no! Your patty burned!"
