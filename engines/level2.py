@@ -56,7 +56,7 @@ class GameEngine2(GameEngine):
         self.hotdog_image = None
         self.hotdog_state = None
         self.currently_cooking = []
-        self.level = 2
+        self.level = 1
         self.customerManager = CustomerManager(self.level)
         self.customer_queue = self.customerManager.get_queue()
 
