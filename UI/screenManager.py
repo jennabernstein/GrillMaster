@@ -78,7 +78,7 @@ class ScreenManager(object):
                 self.threadedGame.handleEvent(event)
         elif self.state == "mainMenu":
             choice = self.mainMenu.handleEvent(event)    
-            self.threadedGame.setNewGame(self.threadedGame.levelProgress.current_state_value)        
+            self.threadedGame.setNewGame(self.threadedGame.levelProgress.current_state_value)    
             if choice == "instructions":
                 self.instructions = True
                 self.threadedGame.setCurrentGame('instructions')
@@ -106,8 +106,9 @@ class ScreenManager(object):
         self.game = self.threadedGame.getGameEngine(self.instructions)
         if self.game.getGameOver()[0]:
             if self.game.passed() and self.state != "mainMenu":  # Check if not already in passedMenu state
-                self.threadedGame.levelProgress.completeLevel(self.current_level)
-                self.current_level = self.threadedGame.levelProgress.current_state_value
+                if self.game.level != 0:
+                    self.threadedGame.levelProgress.completeLevel(self.current_level)
+                    self.current_level = self.threadedGame.levelProgress.current_state_value
                 self.state.passed()  # Transition to passedMenu state
             elif not self.game.passed() and self.state != "mainMenu":  # Check if not already in failedMenu state
                 self.threadedGame.levelProgress.failedLevel()
