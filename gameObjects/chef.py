@@ -52,7 +52,7 @@ class Chef(Mobile):
       self.target_position = None
       self.speed = 250
       self.holdingItem = False
-      self.itemOffset = vec(70,110)
+      self.itemOffset = vec(70,95)
       self.item = Drawable()
 
    def handleEvent(self, event):
@@ -66,7 +66,7 @@ class Chef(Mobile):
             if item.stateType == 'cola':
                self.itemOffset = vec(50,70)
             else:
-               self.itemOffset = vec(70,110)
+               self.itemOffset = vec(70, 90)
             self.item = item
          self.holdingItem = True
 

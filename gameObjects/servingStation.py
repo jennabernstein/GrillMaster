@@ -10,7 +10,7 @@ class ServingStation(Drawable):
         self.points = polygon
         self.polygon = Polygon(polygon)
         self.centroid = self.polygon.centroid
-        self.chefPos = (self.centroid.x - 140, self.centroid.y - 140)
+        self.chefPos = (self.centroid.x - 140, self.centroid.y - 150)
         self.mealFSM = MealFSM(self)
         self.meal = self.mealFSM.getMeal()
         self.customerPosition = (self.centroid.x + 15, self.centroid.y - 50)
