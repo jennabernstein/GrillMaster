@@ -14,7 +14,8 @@ from FSMs import LevelProgressFSM
 class InstructionsEngine(GameEngine):
     import pygame
 
-    def __init__(self):       
+    def __init__(self):   
+        # initialize all drawable items    
         self.chef = Chef((300,300))
         self.size = vec(*RESOLUTION)
         self.background = Drawable((0,0), "kitchen background.png")
@@ -154,6 +155,7 @@ class InstructionsEngine(GameEngine):
 
 
     def scaleDrawable(self, drawable, new_size):
+        # scale size of drawable item
         scaled_image = pygame.transform.scale(drawable.image, new_size)
         scaled_drawable = Drawable(drawable.position, "")
         scaled_drawable.image = scaled_image
@@ -605,7 +607,7 @@ class InstructionsEngine(GameEngine):
             if distance < 5:
                     if self.chef.isHoldingItem():
                         itemType = self.chef.item.getStateType()
-                        # if the chef is holding a patty, update the patty fsm
+                        # if the chef is holding a patty, drop off and update the patty fsm
                         if (itemType == 'vegan patty' or itemType == 'meat patty') and not (y.isHotDogOn() or y.isPattyOn()):
                             if y not in self.currently_cooking:
                                 self.currently_cooking.append(y)
@@ -628,7 +630,7 @@ class InstructionsEngine(GameEngine):
 
 
     def handle_cooking(self, new_position):
-        # for each cookstation that is currently_cooking
+        # for each cookstation that is currently cooking
         if len(self.currently_cooking) >= 1:
             for j in self.currently_cooking:
                 if j.collide(new_position):
@@ -851,7 +853,7 @@ class InstructionsEngine(GameEngine):
         # update all the timers
         self.gameTime += seconds
         self.cola_machine.time += seconds  
-        # update customer queue      
+        # get the customer queue      
         self.customer_queue = self.customerManager.get_queue()
         self.customers_done = self.customerManager.get_customers_done()
         # send first customer in
@@ -877,7 +879,8 @@ class InstructionsEngine(GameEngine):
         # Update the cooking process
         self.update_cooking(seconds)
         # Update the meal prep stations
-        self.update_meal_prep_stations()       
+        self.update_meal_prep_stations() 
+        # update the customer queue      
         self.customerManager.update_timer(seconds)
         self.customerManager.update_queue(seconds)
         # update cola machine fsm

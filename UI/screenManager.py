@@ -1,5 +1,5 @@
 from FSMs import ScreenManagerFSM
-from . import EventMenu, LevelManagerThreaded
+from . import EventMenu
 from engines import GameEngine, ThreadedGameEngine
 from utils import vec, RESOLUTION
 from gameObjects import TextEntry
